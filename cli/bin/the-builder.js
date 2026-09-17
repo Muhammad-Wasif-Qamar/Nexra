@@ -44,7 +44,7 @@ function agentDetected(a) {
 function detectAgents() { return AGENTS.filter(agentDetected); }
 function skills() { return EXPECTED_SKILLS; }
 function usage() {
-  console.log(`The-Builder\n\nCommands:\n  install              Interactive installation wizard (default)\n  install --project    Install into the current project\n  install --global     Install into the user home\n  install --all        Install all skills without prompting\n  detect               Detect supported coding agents and environment\n  list                 List canonical skills\n  show <skill>         Print a skill path\n  doctor               Check installation/repository health\n  validate             Run repository validation\n  test                 Run repository tests\n\nExamples:\n  npx the-builder\n  npx the-builder install --project --all\n  npx the-builder detect`);
+  console.log(`The-Builder\n\nCommands:\n  install              Interactive installation wizard (default)\n  install --project    Install into the current project\n  install --global     Install into the user home\n  install --all        Install all skills without prompting\n  detect               Detect supported coding agents and environment\n  list                 List canonical skills\n  show <skill>         Print a skill path\n  doctor               Check installation/repository health\n  validate             Run repository validation\n  test                 Run repository tests\n\nExamples:\n  npx @wasif-qamar/the-builder\n  npx @wasif-qamar/the-builder install --project --all\n  npx @wasif-qamar/the-builder detect`);
 }
 function run(program, argv, cwd = ROOT) {
   return spawnSync(program, argv, { cwd, stdio: "inherit" });
@@ -121,7 +121,7 @@ async function install() {
     console.log(`✓ Manifest: ${path.join(root, "manifest.json")}`);
     if (detected.length) console.log("✓ Agent detection recorded; no unsupported host configuration was modified.");
     else console.log("  No supported coding-agent executable was detected. Generic installation is still available.");
-    console.log("\nRun `npx the-builder doctor` to verify the installation.");
+    console.log("\nRun `npx @wasif-qamar/the-builder doctor` to verify the installation.");
   } finally { rl?.close(); }
 }
 function doctor() {

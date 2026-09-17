@@ -2,7 +2,7 @@
 
 ## 0.5.0
 
-- Added the interactive `npx the-builder` installer.
+- Added the interactive `npx @wasif-qamar/the-builder` installer.
 - Added automatic environment and coding-agent executable detection.
 - Added project and global installation scopes.
 - Added all-skill and selective-skill installation modes.

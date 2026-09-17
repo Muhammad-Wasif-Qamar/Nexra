@@ -11,8 +11,8 @@
 
 ## Installer cases
 
-11. Project installation — `npx the-builder install --project --all` copies every canonical SKILL.md into `.the-builder/skills/` and writes a manifest.
-12. Global installation — `npx the-builder install --global --all` uses the user's home directory and does not modify the project.
-13. Selective installation — `npx the-builder install --project` can install only explicitly selected valid skills.
+11. Project installation — `npx @wasif-qamar/the-builder install --project --all` copies every canonical SKILL.md into `.the-builder/skills/` and writes a manifest.
+12. Global installation — `npx @wasif-qamar/the-builder install --global --all` uses the user's home directory and does not modify the project.
+13. Selective installation — `npx @wasif-qamar/the-builder install --project` can install only explicitly selected valid skills.
 14. Detection honesty — agent detection reports executable/app evidence and never claims an undetected agent is installed.
 15. Non-destructive host behavior — installation records detected adapters but does not overwrite provider configuration based on guessed paths.

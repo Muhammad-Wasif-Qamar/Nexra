@@ -77,13 +77,13 @@ with tempfile.TemporaryDirectory() as td:
     check("installer-project-exit",r.returncode==0,r.stderr)
     check("installer-project-manifest",(project/".the-builder/manifest.json").is_file())
     pm=json.loads((project/".the-builder/manifest.json").read_text())
-    check("installer-project-skills",sum(len(list(Path(t["path"]).glob("*/SKILL.md"))) for t in pm["targets"])==15)
+    check("installer-project-skills",all(len(list(Path(t["path"]).glob("*/SKILL.md"))) == 15 for t in pm["targets"]))
     r=subprocess.run(["node",str(ROOT/"cli/bin/the-builder.js"),"install","--global","--all"],cwd=project,env=env,capture_output=True,text=True)
     home=Path(env["HOME"])/".the-builder"
     check("installer-global-exit",r.returncode==0,r.stderr)
     check("installer-global-manifest",(home/"manifest.json").is_file())
     gm=json.loads((home/"manifest.json").read_text())
-    check("installer-global-skills",sum(len(list(Path(t["path"]).glob("*/SKILL.md"))) for t in gm["targets"])==15)
+    check("installer-global-skills",all(len(list(Path(t["path"]).glob("*/SKILL.md"))) == 15 for t in gm["targets"]))
     manifest=json.loads((project/".the-builder/manifest.json").read_text())
     check("installer-manifest-scope",manifest.get("scope")=="project")
 

@@ -99,7 +99,7 @@ The-Builder/
 The recommended distribution is the npm CLI. No clone is required.
 
 ```bash
-npx the-builder
+npx @wasif-qamar/the-builder
 ```
 
 The wizard detects the current OS/runtime and supported coding-agent executables, then asks whether to install **for the current project** or **globally for the current user**. It can install all canonical skills or a selected subset.
@@ -107,10 +107,10 @@ The wizard detects the current OS/runtime and supported coding-agent executables
 Non-interactive forms are available for automation:
 
 ```bash
-npx the-builder install --project --all
-npx the-builder install --global --all
-npx the-builder detect
-npx the-builder doctor
+npx @wasif-qamar/the-builder install --project --all
+npx @wasif-qamar/the-builder install --global --all
+npx @wasif-qamar/the-builder detect
+npx @wasif-qamar/the-builder doctor
 ```
 
 Project installation creates `.the-builder/skills/` and an installation manifest in the current project. Global installation creates `~/.the-builder/skills/` and a global manifest. Existing host configuration is not guessed or overwritten: detected agents are recorded so the appropriate adapter can be applied explicitly when a host requires provider-specific discovery/configuration.
