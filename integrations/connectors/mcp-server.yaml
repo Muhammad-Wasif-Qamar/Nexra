@@ -1,0 +1,10 @@
+version: 0.5.0
+kind: connector
+id: mcp-server
+description: MCP server/resource transport.
+authorization:
+  required: true
+  scope: host-defined
+lifecycle:
+  persistent: host-dependent
+  cleanup_required: true

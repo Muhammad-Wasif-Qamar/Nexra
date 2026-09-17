@@ -1,0 +1,14 @@
+adapter_version: 0.5.0
+target: antigravity
+skill_source: ../../skills
+installation:
+  mode: host-managed
+  source: The-Builder repository
+claims:
+  verified: false
+  verification_scope: repository-contract-only
+capability_notes:
+  filesystem: host-dependent
+  terminal: host-dependent
+  browser: host-dependent
+  mcp: host-dependent

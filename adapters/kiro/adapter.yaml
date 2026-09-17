@@ -1,0 +1,17 @@
+adapter_version: 0.5.0
+target: kiro
+skill_source: ../../skills
+installation:
+  mode: native-skill-directory
+  project: .kiro/skills
+  global: ~/.kiro/skills
+  source: The-Builder repository
+claims:
+  verified: true
+  verification_scope: documented-skill-discovery
+  source: https://kiro.dev/docs/powers/create/
+capability_notes:
+  filesystem: host-dependent
+  terminal: host-dependent
+  browser: host-dependent
+  mcp: host-dependent

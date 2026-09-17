@@ -1,0 +1,11 @@
+version: 0.5.0
+kind: plugin
+id: package-manager
+description: Resolve, install, update, and inspect project dependencies using the project's package manager.
+trust:
+  authorization_required: true
+  scope: host-defined
+  destructive_actions: explicit
+evidence:
+  exposes_results: true
+  supports_verification: task-dependent

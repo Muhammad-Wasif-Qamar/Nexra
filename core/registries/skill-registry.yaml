@@ -1,0 +1,34 @@
+version: 0.5.0
+skills:
+  - project-discovery
+  - capability-assessment
+  - interaction
+  - challenge
+  - execution
+  - verification
+  - reporting
+  - ui-ux-design
+  - animation-design
+  - 3d-web-design
+  - scroll-world-flyby
+  - content-code-optimization
+  - seo
+  - security
+  - reviewer
+foundation:
+  - project-discovery
+  - capability-assessment
+  - interaction
+  - challenge
+  - execution
+  - verification
+  - reporting
+domain:
+  - ui-ux-design
+  - animation-design
+  - 3d-web-design
+  - scroll-world-flyby
+  - content-code-optimization
+  - seo
+  - security
+  - reviewer

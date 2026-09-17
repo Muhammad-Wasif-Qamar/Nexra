@@ -1,0 +1,17 @@
+adapter_version: 0.5.0
+target: claude-code
+skill_source: ../../skills
+installation:
+  mode: native-skill-directory
+  project: .claude/skills
+  global: ~/.claude/skills
+  source: The-Builder repository
+claims:
+  verified: true
+  verification_scope: documented-skill-discovery
+  source: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+capability_notes:
+  filesystem: host-dependent
+  terminal: host-dependent
+  browser: host-dependent
+  mcp: host-dependent

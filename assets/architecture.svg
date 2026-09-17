@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+<rect width="1000" height="620" fill="#fff"/>
+<g font-family="Arial, sans-serif" fill="#111827" font-size="18">
+<rect x="60" y="50" width="880" height="110" rx="16" fill="#e5e7eb" stroke="#374151" stroke-width="2"/>
+<text x="500" y="90" text-anchor="middle" font-weight="700">Canonical Skills</text>
+<text x="500" y="125" text-anchor="middle">skills/*/SKILL.md — portable methodology</text>
+<rect x="60" y="205" width="270" height="150" rx="16" fill="#f3f4f6" stroke="#374151" stroke-width="2"/>
+<text x="195" y="245" text-anchor="middle" font-weight="700">Core Contracts</text>
+<text x="195" y="280" text-anchor="middle">orchestration</text><text x="195" y="307" text-anchor="middle">execution / verification</text><text x="195" y="334" text-anchor="middle">reporting / registries</text>
+<rect x="365" y="205" width="270" height="150" rx="16" fill="#f3f4f6" stroke="#374151" stroke-width="2"/>
+<text x="500" y="245" text-anchor="middle" font-weight="700">Integrations</text>
+<text x="500" y="280" text-anchor="middle">plugins</text><text x="500" y="307" text-anchor="middle">connectors</text><text x="500" y="334" text-anchor="middle">host-dependent capability</text>
+<rect x="670" y="205" width="270" height="150" rx="16" fill="#f3f4f6" stroke="#374151" stroke-width="2"/>
+<text x="805" y="245" text-anchor="middle" font-weight="700">Adapters</text>
+<text x="805" y="280" text-anchor="middle">installation</text><text x="805" y="307" text-anchor="middle">discovery</text><text x="805" y="334" text-anchor="middle">provider notes</text>
+<rect x="60" y="405" width="880" height="120" rx="16" fill="#e5e7eb" stroke="#374151" stroke-width="2"/>
+<text x="500" y="448" text-anchor="middle" font-weight="700">Validation + CLI</text>
+<text x="500" y="480" text-anchor="middle">structural checks · behavioral fixtures · smoke tests</text>
+<text x="500" y="508" text-anchor="middle">list · doctor · validate · test</text>
+<path d="M500 160v45M195 355v50M500 355v50M805 355v50" stroke="#4b5563" stroke-width="3"/>
+</g></svg>

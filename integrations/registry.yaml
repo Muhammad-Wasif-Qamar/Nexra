@@ -1,0 +1,24 @@
+version: 0.5.0
+plugins:
+  - browser
+  - filesystem
+  - git
+  - github
+  - shell
+  - package-manager
+  - database
+  - http
+  - image-inspection
+  - test-runner
+  - container
+  - mcp
+connectors:
+  - local-filesystem
+  - git-repository
+  - github-api
+  - browser-session
+  - shell-runtime
+  - npm-registry
+  - postgresql
+  - http-client
+  - mcp-server

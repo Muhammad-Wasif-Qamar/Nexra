@@ -1,0 +1,17 @@
+adapter_version: 0.5.0
+target: github-copilot
+skill_source: ../../skills
+installation:
+  mode: native-skill-directory
+  project: .github/skills
+  global: ~/.copilot/skills
+  source: The-Builder repository
+claims:
+  verified: true
+  verification_scope: documented-skill-discovery
+  source: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills
+capability_notes:
+  filesystem: host-dependent
+  terminal: host-dependent
+  browser: host-dependent
+  mcp: host-dependent
