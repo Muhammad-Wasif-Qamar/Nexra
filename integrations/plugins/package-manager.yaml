@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: package-manager
 description: Resolve, install, update, and inspect project dependencies using the project's package manager.
+requires:
+  connectors:
+    - npm-registry
 trust:
   authorization_required: true
   scope: host-defined

@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: database
 description: Interact with an authorized application database for schema/data inspection or controlled changes.
+requires:
+  connectors:
+    - postgresql
 trust:
   authorization_required: true
   scope: host-defined

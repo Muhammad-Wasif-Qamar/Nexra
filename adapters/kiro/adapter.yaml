@@ -9,7 +9,7 @@ installation:
 claims:
   verified: true
   verification_scope: documented-skill-discovery
-  source: https://kiro.dev/docs/powers/create/
+  source: https://kiro.dev/docs/skills/
 capability_notes:
   filesystem: host-dependent
   terminal: host-dependent

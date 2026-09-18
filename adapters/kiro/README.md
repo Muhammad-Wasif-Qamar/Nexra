@@ -11,7 +11,7 @@ The CLI only writes these skill directories. It does not rewrite unrelated provi
 
 ## Evidence
 
-Documented discovery source: https://kiro.dev/docs/powers/create/
+Documented discovery source: https://kiro.dev/docs/skills/
 
 ## Compatibility
 

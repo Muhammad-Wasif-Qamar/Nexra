@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: test-runner
 description: Run project tests and expose exit status/output.
+requires:
+  connectors:
+    - shell-runtime
 trust:
   authorization_required: true
   scope: host-defined

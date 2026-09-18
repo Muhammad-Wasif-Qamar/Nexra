@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: git
 description: Inspect repository state, diffs, branches, and history; perform authorized version-control actions.
+requires:
+  connectors:
+    - git-repository
 trust:
   authorization_required: true
   scope: host-defined

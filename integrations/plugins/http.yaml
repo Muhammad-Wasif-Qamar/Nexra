@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: http
 description: Make authorized HTTP requests for testing or retrieval.
+requires:
+  connectors:
+    - http-client
 trust:
   authorization_required: true
   scope: host-defined

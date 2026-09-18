@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: mcp
 description: Discover and invoke authorized MCP tools/resources exposed to the agent.
+requires:
+  connectors:
+    - mcp-server
 trust:
   authorization_required: true
   scope: host-defined

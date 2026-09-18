@@ -1,34 +1,448 @@
-version: 0.5.0
+schema_version: "1.0"
+
+registry:
+  id: the-builder-skill-registry
+  name: The-Builder Skill Registry
+  description: >
+    Canonical registry of installable The-Builder skills, their classification,
+    dependencies, and intended execution role.
+
 skills:
-  - project-discovery
-  - capability-assessment
-  - interaction
-  - challenge
-  - execution
-  - verification
-  - reporting
-  - ui-ux-design
-  - animation-design
-  - 3d-web-design
-  - scroll-world-flyby
-  - content-code-optimization
-  - seo
-  - security
-  - reviewer
-foundation:
-  - project-discovery
-  - capability-assessment
-  - interaction
-  - challenge
-  - execution
-  - verification
-  - reporting
-domain:
-  - ui-ux-design
-  - animation-design
-  - 3d-web-design
-  - scroll-world-flyby
-  - content-code-optimization
-  - seo
-  - security
-  - reviewer
+
+  # ============================================================
+  # FOUNDATION SKILLS
+  # ============================================================
+
+  - id: project-discovery
+    name: Project Discovery
+    version: "0.1.0"
+    category: foundation
+    path: skills/project-discovery/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Inspects and understands an existing project before planning or modifying it.
+    dependencies: []
+
+  - id: capability-assessment
+    name: Capability Assessment
+    version: "0.1.0"
+    category: foundation
+    path: skills/capability-assessment/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Determines whether the current model, agent, tools, environment, and project
+      can reliably support the requested task.
+    dependencies:
+      - project-discovery
+
+  - id: interaction
+    name: Interaction
+    version: "0.1.0"
+    category: foundation
+    path: skills/interaction/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Determines what information can be discovered, what must be requested,
+      and how to interact with the user efficiently.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+
+  - id: challenge
+    name: Challenge
+    version: "0.1.0"
+    category: foundation
+    path: skills/challenge/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Identifies substantive weaknesses, contradictions, risks, and unnecessary
+      complexity in requirements without overriding user decisions.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+      - interaction
+
+  - id: execution
+    name: Execution
+    version: "0.1.0"
+    category: foundation
+    path: skills/execution/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Converts an agreed plan into controlled, incremental, scope-aware changes.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+      - interaction
+      - challenge
+
+  - id: verification
+    name: Verification
+    version: "0.1.0"
+    category: foundation
+    path: skills/verification/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Establishes evidence that implemented work satisfies its intended outcome
+      and clearly identifies unverified areas.
+    dependencies:
+      - execution
+
+  - id: reporting
+    name: Reporting
+    version: "0.1.0"
+    category: foundation
+    path: skills/reporting/SKILL.md
+    type: methodology
+    required: true
+    description: >
+      Communicates implementation state, evidence, decisions, limitations,
+      and remaining work accurately.
+    dependencies:
+      - verification
+
+
+  # ============================================================
+  # DOMAIN SKILLS
+  # ============================================================
+
+  - id: ui-ux-design
+    name: UI/UX Design
+    version: "0.1.0"
+    category: domain
+    path: skills/ui-ux-design/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Designs and implements usable, coherent, responsive, and accessible
+      user interfaces and experiences.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+      - interaction
+      - execution
+      - verification
+
+  - id: animation-design
+    name: Animation Design
+    version: "0.1.0"
+    category: domain
+    path: skills/animation-design/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Designs purposeful interface and web animation with attention to timing,
+      interaction, performance, and accessibility.
+    dependencies:
+      - ui-ux-design
+      - capability-assessment
+      - execution
+      - verification
+
+  - id: 3d-web-design
+    name: 3D Web Design
+    version: "0.1.0"
+    category: domain
+    path: skills/3d-web-design/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Designs and implements interactive 3D web experiences while accounting
+      for rendering cost, assets, loading, responsiveness, and graceful degradation.
+    dependencies:
+      - ui-ux-design
+      - animation-design
+      - capability-assessment
+      - execution
+      - verification
+
+  - id: scroll-world-flyby
+    name: Scroll World / Fly-by
+    version: "0.1.0"
+    category: domain
+    path: skills/scroll-world-flyby/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Designs scroll-driven spatial experiences and fly-by transitions involving
+      camera movement, depth, parallax, scene sequencing, and optional 3D rendering.
+    dependencies:
+      - animation-design
+      - 3d-web-design
+      - capability-assessment
+      - execution
+      - verification
+
+  - id: content-code-optimization
+    name: Content + Code Optimization
+    version: "0.1.0"
+    category: domain
+    path: skills/content-code-optimization/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Improves content quality and code quality through evidence-based analysis
+      of clarity, structure, performance, maintainability, and implementation efficiency.
+    dependencies:
+      - project-discovery
+      - execution
+      - verification
+
+  - id: seo
+    name: SEO
+    version: "0.1.0"
+    category: domain
+    path: skills/seo/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Improves technical and content-level search engine discoverability while
+      preserving usability, accessibility, and truthful content.
+    dependencies:
+      - project-discovery
+      - content-code-optimization
+      - verification
+
+  - id: security
+    name: Security
+    version: "0.1.0"
+    category: domain
+    path: skills/security/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Identifies and addresses security risks across application code,
+      architecture, dependencies, configuration, authentication, authorization,
+      and data handling.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+      - execution
+      - verification
+
+  - id: reviewer
+    name: Reviewer
+    version: "0.1.0"
+    category: domain
+    path: skills/reviewer/SKILL.md
+    type: methodology
+    required: false
+    description: >
+      Performs structured review of implementation quality, correctness,
+      performance, accessibility, SEO, security, design, and maintainability.
+    dependencies:
+      - project-discovery
+      - capability-assessment
+      - verification
+
+
+# ================================================================
+# REGISTRY RULES
+# ================================================================
+
+rules:
+
+  canonical_source:
+    description: >
+      The path declared by each registry entry is the canonical source of
+      the corresponding installable skill.
+
+  unique_ids:
+    description: >
+      Every skill ID must be unique within the registry.
+
+  unique_paths:
+    description: >
+      Every canonical skill path must identify exactly one registry entry.
+
+  version_required:
+    description: >
+      Every registered skill must declare an explicit version.
+
+  foundation:
+    description: >
+      Foundation skills define general agent behavior and may be used by
+      other skills.
+
+  domain:
+    description: >
+      Domain skills provide specialized methodology for particular classes
+      of work.
+
+  dependencies:
+    description: >
+      Dependencies describe methodological prerequisites. They do not require
+      an adapter or runtime to expose a separate tool for every dependency.
+
+  no_provider_lock_in:
+    description: >
+      Registry entries must not require a specific AI provider, model,
+      editor, or coding-agent implementation unless that requirement is
+      explicitly represented by an adapter or capability contract.
+
+  capability_aware:
+    description: >
+      A registered skill must operate according to the available capability
+      state rather than assuming every environment supports every operation.
+
+  graceful_degradation:
+    description: >
+      Skills should degrade gracefully when optional capabilities are unavailable.
+
+  verification:
+    description: >
+      Skills that modify or materially evaluate a project should define
+      appropriate verification behavior.
+
+  user_authority:
+    description: >
+      Registry metadata must not authorize a skill to silently override
+      substantive user decisions.
+
+
+# ================================================================
+# EXECUTION GROUPS
+# ================================================================
+
+execution_groups:
+
+  foundation:
+    description: >
+      Core methodology used to understand, decide, execute, verify, and report.
+    skills:
+      - project-discovery
+      - capability-assessment
+      - interaction
+      - challenge
+      - execution
+      - verification
+      - reporting
+
+  design:
+    description: >
+      Skills concerned with visual and interaction design.
+    skills:
+      - ui-ux-design
+      - animation-design
+      - 3d-web-design
+      - scroll-world-flyby
+
+  optimization:
+    description: >
+      Skills concerned with content, implementation quality, discoverability,
+      and security.
+    skills:
+      - content-code-optimization
+      - seo
+      - security
+
+  quality:
+    description: >
+      Skills concerned with structured assessment and review.
+    skills:
+      - reviewer
+
+
+# ================================================================
+# PIPELINE DEFAULTS
+# ================================================================
+
+pipeline:
+
+  discovery:
+    default:
+      - project-discovery
+
+  capability_assessment:
+    default:
+      - capability-assessment
+
+  interaction:
+    default:
+      - interaction
+
+  challenge:
+    conditional:
+      - challenge
+
+  execution:
+    default:
+      - execution
+
+  verification:
+    default:
+      - verification
+
+  reporting:
+    default:
+      - reporting
+
+
+# ================================================================
+# DOMAIN SELECTION
+# ================================================================
+
+selection:
+
+  ui:
+    skills:
+      - ui-ux-design
+
+  animation:
+    skills:
+      - animation-design
+
+  3d:
+    skills:
+      - 3d-web-design
+
+  scroll:
+    skills:
+      - scroll-world-flyby
+
+  flyby:
+    skills:
+      - scroll-world-flyby
+
+  content:
+    skills:
+      - content-code-optimization
+
+  code-optimization:
+    skills:
+      - content-code-optimization
+
+  seo:
+    skills:
+      - seo
+
+  security:
+    skills:
+      - security
+
+  review:
+    skills:
+      - reviewer
+
+
+# ================================================================
+# REGISTRY COMPLETION CRITERIA
+# ================================================================
+
+completion_criteria:
+
+  - every registered skill has a unique ID
+  - every registered skill has a canonical path
+  - every canonical path points to an installable SKILL.md
+  - every registered skill declares a version
+  - dependency references resolve to registered skills
+  - foundation skills are clearly distinguished from domain skills
+  - provider-specific behavior remains outside the canonical registry
+  - capability constraints remain respected
+  - user authority remains preserved

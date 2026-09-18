@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: filesystem
 description: Read and write files within the authorized workspace.
+requires:
+  connectors:
+    - local-filesystem
 trust:
   authorization_required: true
   scope: host-defined

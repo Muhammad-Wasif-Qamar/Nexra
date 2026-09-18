@@ -2,6 +2,9 @@ version: 0.5.0
 kind: plugin
 id: browser
 description: Inspect and interact with rendered web pages when browser capability is available.
+requires:
+  connectors:
+    - browser-session
 trust:
   authorization_required: true
   scope: host-defined
