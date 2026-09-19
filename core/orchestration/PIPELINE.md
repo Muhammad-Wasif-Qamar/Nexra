@@ -1,8 +1,8 @@
-# The-Builder Execution Pipeline
+# Nexra Execution Pipeline
 
 ## 1. Purpose
 
-The pipeline defines how The-Builder coordinates skills, capabilities, user interaction, execution, verification, and reporting.
+The pipeline defines how Nexra coordinates skills, capabilities, user interaction, execution, verification, and reporting.
 
 It provides the system-level workflow around the canonical skills.
 

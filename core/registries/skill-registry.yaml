@@ -1,10 +1,10 @@
 schema_version: "1.0"
 
 registry:
-  id: the-builder-skill-registry
-  name: The-Builder Skill Registry
+  id: nexra-skill-registry
+  name: Nexra Skill Registry
   description: >
-    Canonical registry of installable The-Builder skills, their classification,
+    Canonical registry of installable Nexra skills, their classification,
     dependencies, and intended execution role.
 
 skills:

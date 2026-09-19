@@ -1,4 +1,4 @@
-version: 0.5.0
+version: 0.1.0
 kind: plugin
 id: container
 description: Build or execute isolated containers where the host provides that capability.

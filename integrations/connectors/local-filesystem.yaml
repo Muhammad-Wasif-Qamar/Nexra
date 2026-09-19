@@ -1,4 +1,4 @@
-version: 0.5.0
+version: 0.1.0
 kind: connector
 id: local-filesystem
 description: Workspace file resource access.

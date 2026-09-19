@@ -6,7 +6,7 @@
 
 ## Purpose
 
-These cases test the cross-cutting behavior of The-Builder's foundation system.
+These cases test the cross-cutting behavior of Nexra's foundation system.
 
 They are behavioral specifications, not exact-output tests.
 

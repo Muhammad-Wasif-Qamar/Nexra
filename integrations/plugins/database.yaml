@@ -1,4 +1,4 @@
-version: 0.5.0
+version: 0.1.0
 kind: plugin
 id: database
 description: Interact with an authorized application database for schema/data inspection or controlled changes.

@@ -1,17 +1,44 @@
-adapter_version: 0.5.0
-target: gemini
-skill_source: ../../skills
+id: gemini
+name: Gemini CLI
+
+adapter:
+  schema_version: "1.0"
+  version: "0.1.0"
+  platform: gemini
+
+detection:
+  commands:
+    - gemini
+
 installation:
-  mode: native-skill-directory
-  project: .gemini/skills
-  global: ~/.gemini/skills
-  source: The-Builder repository
-claims:
-  verified: true
-  verification_scope: documented-skill-discovery
-  source: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md
-capability_notes:
-  filesystem: host-dependent
-  terminal: host-dependent
-  browser: host-dependent
-  mcp: host-dependent
+  project:
+    supported: true
+    target: ".gemini/skills/"
+  global:
+    supported: true
+    target: "~/.gemini/skills/"
+  strategy: native-skill-directory
+
+skills:
+  source: "skills/"
+  discovery: native
+
+capabilities:
+  discovery: true
+  filesystem: unknown
+  terminal: unknown
+  browser: unknown
+  mcp: unknown
+
+compatibility:
+  status: verified
+  evidence:
+    - "https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md"
+  notes:
+    - "Gemini CLI documents workspace .gemini/skills and interoperable Agent Skills locations."
+
+verification:
+  project:
+    expected_path: ".gemini/skills/"
+  global:
+    expected_path: "~/.gemini/skills/"

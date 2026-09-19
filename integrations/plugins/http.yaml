@@ -1,4 +1,4 @@
-version: 0.5.0
+version: 0.1.0
 kind: plugin
 id: http
 description: Make authorized HTTP requests for testing or retrieval.

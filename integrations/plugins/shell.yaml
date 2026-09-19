@@ -1,4 +1,4 @@
-version: 0.5.0
+version: 0.1.0
 kind: plugin
 id: shell
 description: Execute commands in an authorized shell environment.

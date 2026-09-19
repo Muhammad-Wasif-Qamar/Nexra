@@ -1,13 +1,13 @@
 {
-  "name": "@wasif-qamar/the-builder",
-  "version": "0.5.0",
+  "name": "nexra",
+  "version": "0.1.0",
   "description": "A capability-aware, user-driven skill system for AI coding agents.",
   "type": "module",
   "engines": {
     "node": ">=18"
   },
   "bin": {
-    "the-builder": "cli/bin/the-builder.js"
+    "nexra": "cli/bin/nexra.js"
   },
   "files": [
     "skills",
@@ -27,8 +27,8 @@
   "scripts": {
     "validate": "python3 scripts/validate.py",
     "test": "python3 scripts/test_suite.py",
-    "doctor": "node cli/bin/the-builder.js doctor",
-    "list": "node cli/bin/the-builder.js list",
+    "doctor": "node cli/bin/nexra.js doctor",
+    "list": "node cli/bin/nexra.js list",
     "pack:test": "npm pack --dry-run"
   },
   "keywords": [
@@ -42,10 +42,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Muhammad-Wasif-Qamar/The-Builder.git"
+    "url": "https://github.com/Muhammad-Wasif-Qamar/Nexra.git"
   },
   "bugs": {
-    "url": "https://github.com/Muhammad-Wasif-Qamar/The-Builder/issues"
+    "url": "https://github.com/Muhammad-Wasif-Qamar/Nexra/issues"
   },
-  "homepage": "https://github.com/Muhammad-Wasif-Qamar/The-Builder"
+  "homepage": "https://github.com/Muhammad-Wasif-Qamar/Nexra"
 }

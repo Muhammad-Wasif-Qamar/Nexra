@@ -1,4 +1,4 @@
-# The-Builder Skill Specification
+# Nexra Skill Specification
 
 **Specification Version:** 0.1.0
 
@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-This document defines the canonical structure and behavioral requirements for skills in The-Builder.
+This document defines the canonical structure and behavioral requirements for skills in Nexra.
 
 A skill is not merely a prompt.
 
@@ -228,7 +228,7 @@ Requirements:
 - lowercase;
 - stable;
 - filesystem-safe;
-- unique within The-Builder.
+- unique within Nexra.
 
 Recommended format:
 
@@ -930,7 +930,7 @@ verification
 reporting
 ```
 
-They define the operating model of The-Builder.
+They define the operating model of Nexra.
 
 ---
 
@@ -1291,7 +1291,7 @@ The objective is useful depth, not maximum line count.
 
 # 46. Final Principle
 
-The-Builder skills should teach an AI coding agent not merely:
+Nexra skills should teach an AI coding agent not merely:
 
 > **what command to execute**
 

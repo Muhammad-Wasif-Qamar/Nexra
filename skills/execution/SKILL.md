@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Purpose
 
-Execution defines how The-Builder turns an understood and approved task into actual project changes.
+Execution defines how Nexra turns an understood and approved task into actual project changes.
 
 Execution begins only after enough discovery, capability assessment, interaction, and planning has occurred to make implementation meaningful.
 

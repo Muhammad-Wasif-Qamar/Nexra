@@ -1,6 +1,6 @@
 # Challenge Behavioral Test Cases
 
-These cases define the expected behavior of the The-Builder challenge skill.
+These cases define the expected behavior of the Nexra challenge skill.
 
 The tests are behavioral. They do not require exact wording.
 

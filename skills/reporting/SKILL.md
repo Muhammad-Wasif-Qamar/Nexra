@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Purpose
 
-Reporting defines how The-Builder communicates the result of its work.
+Reporting defines how Nexra communicates the result of its work.
 
 A good report allows the user to understand:
 

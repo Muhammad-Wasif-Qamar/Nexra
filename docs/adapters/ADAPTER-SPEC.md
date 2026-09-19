@@ -1,87 +1,131 @@
-# Adapter Specification
+# Nexra Adapter Specification
 
-**Specification Version:** 0.1.0
+**Specification Version:** 1.0.0
 
 ---
 
 ## 1. Purpose
 
-Adapters define how The-Builder's canonical skills are exposed to a specific AI coding agent.
+Adapters define how Nexra is integrated with a specific AI coding agent or host environment.
 
-The canonical skill system must remain agent-agnostic.
+Nexra's canonical skills remain agent-agnostic.
 
-An adapter translates between:
+The adapter provides the translation layer between:
 
 ```text
-The-Builder
-    ↓
-canonical skills / contracts
-    ↓
-agent-specific capabilities
+Nexra
+  ↓
+Canonical Skills
+  ↓
+Adapter
+  ↓
+Agent / Host Environment
 ```
 
-The adapter is responsible for compatibility.
+An adapter describes how a host discovers, installs, and consumes Nexra skills.
 
-It must not redefine the underlying methodology of a skill.
-
----
-
-# 2. Core Principle
-
-> Skills define how work should be performed. Adapters define how those skills are delivered to a particular agent.
-
-This distinction is fundamental.
-
-A skill should not contain provider-specific instructions merely because one adapter requires them.
+It does not redefine the methodology of those skills.
 
 ---
 
-# 3. Adapter Responsibilities
+## 2. Core Principle
+
+> Skills define what methodology should be followed. Adapters define how that methodology is made available to a particular host.
+
+This separation allows the same Nexra skill to be used across different agents without maintaining separate implementations of the skill itself.
+
+---
+
+## 3. Adapter Responsibilities
 
 An adapter may define:
 
-- installation location;
-- file layout;
-- metadata translation;
-- activation mechanism;
-- supported capability mappings;
-- agent-specific configuration;
+- host identity;
+- supported host platforms;
+- installation mechanisms;
+- skill discovery mechanisms;
+- project-local installation;
+- user-global installation;
+- skill target locations;
+- host-specific metadata;
+- capability requirements;
 - compatibility limitations;
-- discovery of available agent features.
+- configuration requirements;
+- verification requirements;
+- host-specific integration behavior.
+
+An adapter may also describe limitations where the target host does not support a particular Nexra capability.
 
 ---
 
-# 4. Adapter Non-Responsibilities
+## 4. Adapter Non-Responsibilities
 
-An adapter must not silently:
+An adapter must not:
 
-- change the meaning of a skill;
-- override user decisions;
-- remove verification requirements;
-- claim unavailable capabilities;
-- redefine canonical skill behavior;
-- introduce provider-specific assumptions into the canonical skill.
+- redefine canonical skill methodology;
+- maintain an independent copy of a canonical skill;
+- silently modify user decisions;
+- remove Nexra verification requirements;
+- claim capabilities that the host does not provide;
+- invent unsupported host behavior;
+- embed provider-specific behavior into canonical skills;
+- silently overwrite unrelated user configuration.
 
 ---
 
-# 5. Adapter Metadata
+## 5. Adapter Lifecycle
 
-Each adapter should provide machine-readable metadata.
+An adapter follows this general lifecycle:
 
-Example:
+```text
+DETECT
+  ↓
+ASSESS
+  ↓
+INSTALL
+  ↓
+DISCOVER
+  ↓
+EXECUTE
+  ↓
+VERIFY
+```
+
+Not every host supports every stage natively.
+
+Where a stage is unsupported, the adapter must describe the limitation rather than pretending that support exists.
+
+---
+
+## 6. Adapter Metadata
+
+Each adapter is represented by:
+
+```text
+adapters/<adapter-id>/adapter.yaml
+```
+
+A minimal adapter manifest has the following structure:
 
 ```yaml
 id: opencode
 name: OpenCode
-version: "0.1.0"
 
 adapter:
   schema_version: "1.0"
+  version: "0.1.0"
   platform: opencode
 
+installation:
+  project:
+    supported: true
+    target: ".opencode/skills/"
+  global:
+    supported: false
+
 skills:
-  source: skills/
-  target: .opencode/skills/
+  source: "skills/"
+  discovery: "native"
 
 capabilities:
   discovery: true
@@ -89,36 +133,42 @@ capabilities:
   terminal: true
 ```
 
-The exact fields may evolve.
+The exact capability set may differ between hosts.
 
 ---
 
-# 6. Required Adapter Fields
+## 7. Required Fields
 
-An adapter should identify:
+Every adapter manifest must provide:
 
 ```text
 id
 name
-version
-platform
-skill source
-skill target
-capability model
+adapter.schema_version
+adapter.version
+adapter.platform
+installation
+skills
+capabilities
 ```
 
-Additional fields may be included where useful.
+The manifest may contain additional fields when they provide useful host-specific information.
 
 ---
 
-# 7. Adapter Identity
+## 8. Adapter Identity
 
-`id` must be:
+### `id`
 
-- unique;
-- stable;
-- machine-readable;
-- independent of installation path.
+`id` is the stable machine-readable identifier.
+
+Requirements:
+
+- unique within Nexra;
+- lowercase;
+- kebab-case;
+- stable across releases;
+- independent of installation paths.
 
 Example:
 
@@ -126,309 +176,251 @@ Example:
 id: claude-code
 ```
 
-Do not use:
-
-```yaml
-id: my-computer-claude-install
-```
+The identifier represents the host integration, not a particular user's machine.
 
 ---
 
-# 8. Adapter Version
+## 9. Adapter Name
 
-The adapter version describes the adapter implementation.
+### `name`
 
-It is independent from:
-
-```text
-The-Builder release version
-```
-
-and:
-
-```text
-individual skill version
-```
+`name` is the human-readable host name.
 
 Example:
 
 ```yaml
-adapter version: 0.2.0
-skill version: 0.1.0
+name: Claude Code
 ```
 
-These may evolve independently.
+The name may contain spaces, capitalization, and the host's official product naming.
 
 ---
 
-# 9. Canonical Skill Source
+## 10. Adapter Schema Version
 
-Adapters consume skills from:
+### `adapter.schema_version`
+
+This identifies the structure of the adapter manifest.
+
+Example:
+
+```yaml
+adapter:
+  schema_version: "1.0"
+```
+
+The schema version changes when the structure or meaning of adapter manifests changes.
+
+It is independent of the adapter implementation version.
+
+---
+
+## 11. Adapter Version
+
+### `adapter.version`
+
+This identifies the version of the individual adapter implementation.
+
+Example:
+
+```yaml
+adapter:
+  version: "0.1.0"
+```
+
+This is independent from:
+
+```text
+Nexra release version
+Skill versions
+Adapter schema version
+```
+
+For example:
+
+```text
+Nexra release:       0.1.0
+Adapter version:     0.2.0
+Adapter schema:      1.0
+Skill version:       0.1.0
+```
+
+These versions serve different purposes.
+
+---
+
+## 12. Platform
+
+### `adapter.platform`
+
+This identifies the target host.
+
+Example:
+
+```yaml
+adapter:
+  platform: opencode
+```
+
+The value should correspond to the adapter's `id` unless the host requires a documented distinction.
+
+---
+
+## 13. Installation
+
+The `installation` section describes how Nexra skills are made available to the host.
+
+Example:
+
+```yaml
+installation:
+  project:
+    supported: true
+    target: ".opencode/skills/"
+
+  global:
+    supported: false
+```
+
+Installation metadata describes the adapter's supported installation mechanisms.
+
+It does not itself perform installation.
+
+The CLI or another Nexra execution layer is responsible for carrying out installation.
+
+---
+
+## 14. Project Installation
+
+Project installation applies Nexra to a specific repository or workspace.
+
+Example:
+
+```yaml
+installation:
+  project:
+    supported: true
+    target: ".agent/skills/"
+```
+
+If a host does not provide a native project-level skill directory:
+
+```yaml
+installation:
+  project:
+    supported: false
+```
+
+Do not invent a target directory simply because another agent uses one.
+
+---
+
+## 15. Global Installation
+
+Global installation makes Nexra skills available across multiple projects.
+
+Example:
+
+```yaml
+installation:
+  global:
+    supported: true
+    target: "~/.agent/skills/"
+```
+
+If the host does not provide a documented global mechanism:
+
+```yaml
+installation:
+  global:
+    supported: false
+```
+
+Global paths must be based on documented host behavior.
+
+They must not be guessed.
+
+---
+
+## 16. Skill Source
+
+### `skills.source`
+
+The canonical Nexra skill source is:
 
 ```text
 skills/<skill-id>/SKILL.md
 ```
 
-The canonical skill remains the source of truth.
-
-An adapter should not maintain a second manually edited copy of the skill methodology.
-
----
-
-# 10. Installation Target
-
-The adapter must define where the target agent expects skills.
-
-Examples may include:
-
-```text
-.claude/skills/
-.opencode/skills/
-.gemini/skills/
-.agents/skills/
-```
-
-The adapter must document whether the location is:
-
-```text
-project-local
-user-global
-portable fallback
-```
-
----
-
-# 11. Project-Local Installation
-
-Project-local installation means the skill applies to one repository or workspace.
+The adapter consumes the canonical skill rather than maintaining an independent implementation.
 
 Example:
 
-```text
-project/
-├── .agent-specific-directory/
-│   └── skills/
-```
-
-This is generally appropriate when skill behavior depends on project context.
-
----
-
-# 12. Global Installation
-
-Global installation means the skill is available across projects.
-
-Global paths must not be guessed.
-
-An adapter should document the supported global mechanism.
-
----
-
-# 13. Portable Fallback
-
-When an agent-specific native skill directory is unavailable, an adapter may provide a documented portable fallback.
-
-The fallback must be:
-
-- deterministic;
-- documented;
-- non-destructive;
-- compatible with the target agent's normal instruction mechanism.
-
-The fallback must not silently overwrite unrelated configuration.
-
----
-
-# 14. Host Configuration
-
-Adapters may need to interact with host configuration.
-
-Before modifying configuration:
-
-```text
-inspect
-→ determine whether the configuration exists
-→ preserve unrelated settings
-→ apply only required changes
-```
-
-Do not replace an entire configuration file merely to add one skill reference.
-
----
-
-# 15. Configuration Preservation
-
-Adapters must preserve existing user configuration.
-
-For example:
-
 ```yaml
-existing_setting: true
+skills:
+  source: "skills/"
 ```
 
-must not disappear because The-Builder adds:
-
-```yaml
-the_builder:
-  enabled: true
-```
-
-Prefer minimal modifications.
+Adapters must not silently introduce a second canonical skill source.
 
 ---
 
-# 16. Adapter Installation
+## 17. Skill Discovery
 
-A standard installation flow is:
+### `skills.discovery`
 
-```text
-detect target
-↓
-validate compatibility
-↓
-resolve skill set
-↓
-determine target paths
-↓
-create required directories
-↓
-install skills
-↓
-write manifest
-↓
-verify installation
-```
+This field describes how the target host discovers installed skills.
 
----
-
-# 17. Detection
-
-Detection should establish whether the target agent is present.
-
-Possible evidence:
+Possible values include:
 
 ```text
-known executable
-known project directory
-known configuration
-environment information
-explicit user selection
-```
-
-Do not claim an agent is installed based solely on a weak assumption.
-
----
-
-# 18. Explicit Target Selection
-
-If the user explicitly selects a target:
-
-```text
-install for OpenCode
-```
-
-the adapter may proceed without requiring automatic detection of that same target.
-
-Explicit user input is authoritative unless technically impossible.
-
----
-
-# 19. Automatic Detection
-
-Automatic detection should be conservative.
-
-Possible states:
-
-```text
-DETECTED
-NOT_DETECTED
-AMBIGUOUS
-UNSUPPORTED
-```
-
-Do not treat:
-
-```text
-directory exists
-```
-
-as definitive evidence that a complete agent installation exists unless that is a documented detection method.
-
----
-
-# 20. Unsupported Agent
-
-If an agent is unsupported:
-
-```text
-do not pretend compatibility
-```
-
-The installer may offer:
-
-```text
-generic adapter
-portable skill installation
-manual integration instructions
-```
-
-when supported.
-
----
-
-# 21. Capability Mapping
-
-Adapters may translate agent-specific capabilities into canonical capability concepts.
-
-Examples:
-
-```text
+native
+instruction-file
+configuration
 filesystem
-terminal
-browser
-image inspection
-MCP
-subagents
-network
+manual
+unsupported
 ```
-
-The canonical skill should reason about capabilities, not proprietary feature names.
-
----
-
-# 22. Capability Translation
 
 Example:
 
 ```yaml
-agent:
-  browser_tool: true
-
-canonical:
-  browser: true
+skills:
+  discovery: native
 ```
 
-The mapping belongs in the adapter layer.
+The value must describe actual host behavior.
+
+If discovery depends on a host configuration file, document that mechanism rather than labeling it `native`.
 
 ---
 
-# 23. Capability Absence
+## 18. Capabilities
 
-If a target agent lacks a capability:
+The `capabilities` section describes relevant host capabilities.
 
-```text
-mark it unavailable
+Example:
+
+```yaml
+capabilities:
+  discovery: true
+  filesystem: true
+  terminal: true
 ```
 
-Do not modify the skill to pretend that the capability exists.
+Capabilities are informational compatibility metadata.
 
-The skill's graceful-degradation behavior should determine what happens next.
+They do not grant capabilities to the agent.
+
+They describe capabilities available through the target host or its supported integration environment.
 
 ---
 
-# 24. Capability State
+## 19. Capability States
 
-Adapters may expose evidence used to determine:
+Where a simple boolean is insufficient, an adapter may describe capability states.
+
+Canonical Nexra capability states are:
 
 ```text
 FULL
@@ -437,796 +429,358 @@ CONSTRAINED
 UNSUITABLE
 ```
 
-The adapter should provide facts.
-
-Capability assessment determines the resulting state.
-
----
-
-# 25. Skill Selection
-
-An adapter may support installation of:
-
-```text
-all skills
-foundation only
-selected skills
-domain-specific skills
-```
-
-The canonical registry determines which skills exist.
-
----
-
-# 26. Skill Dependencies
-
-When installing a skill with dependencies, the installer should resolve the dependency graph.
-
 Example:
-
-```text
-scroll-world-flyby
-    ↓
-animation-design
-    ↓
-ui-ux-design
-```
-
-The exact installation policy may allow dependency installation automatically or require explicit selection, but the behavior must be deterministic and documented.
-
----
-
-# 27. Dependency Resolution
-
-Dependency resolution must:
-
-- resolve known skill IDs;
-- detect missing dependencies;
-- detect cycles;
-- avoid duplicate installation;
-- preserve version information.
-
----
-
-# 28. Circular Dependencies
-
-Circular dependencies are invalid.
-
-Example:
-
-```text
-A → B
-B → A
-```
-
-The installer should fail validation rather than recursively attempting installation.
-
----
-
-# 29. Version Compatibility
-
-Adapters should distinguish:
-
-```text
-adapter compatibility
-skill compatibility
-agent compatibility
-```
-
-A skill version does not automatically imply compatibility with every agent version.
-
----
-
-# 30. Compatibility States
-
-Recommended states:
-
-```text
-SUPPORTED
-SUPPORTED_WITH_LIMITATIONS
-UNSUPPORTED
-UNKNOWN
-```
-
----
-
-# 31. Supported
-
-The adapter has a documented integration mechanism for the target.
-
----
-
-# 32. Supported With Limitations
-
-The adapter can install and expose the skill, but one or more capabilities are constrained.
-
-Example:
-
-```text
-Skills installed successfully.
-Browser-based visual verification is unavailable.
-```
-
----
-
-# 33. Unsupported
-
-No reliable integration mechanism exists.
-
-Do not claim successful installation.
-
----
-
-# 34. Unknown
-
-The target's compatibility cannot be established with available evidence.
-
-Treat unknown compatibility conservatively.
-
----
-
-# 35. Installation Manifest
-
-Installations should produce a manifest where practical.
-
-The manifest should identify:
 
 ```yaml
-schema: 1
-version: 0.1.0
-scope: project
-skills:
-  - project-discovery
-  - capability-assessment
-adapters:
-  - opencode
-targets:
-  - ...
+capabilities:
+  filesystem:
+    state: FULL
+
+  browser:
+    state: CONSTRAINED
+
+  database:
+    state: UNSUITABLE
 ```
 
-The manifest provides installation traceability.
+The state must be supported by evidence from the host environment or documented integration behavior.
 
 ---
 
-# 36. Manifest Purpose
+## 20. Capability Evidence
 
-The manifest can be used to:
+Adapters should avoid making unsupported capability claims.
 
-- inspect installed skills;
-- diagnose incomplete installations;
-- determine what The-Builder installed;
-- support upgrades;
-- support cleanup;
-- avoid ambiguous ownership.
+Where practical, capability metadata may include evidence:
 
----
-
-# 37. Ownership
-
-An adapter should be able to determine which files it owns.
-
-This is important for safe updates and removal.
-
-Do not delete files merely because they exist inside a target directory.
-
----
-
-# 38. Existing Skills
-
-If a target skill already exists, the installer must have a deterministic policy.
-
-Possible policies:
-
-```text
-REPLACE
-SKIP
-BACKUP_AND_REPLACE
-FAIL
+```yaml
+capabilities:
+  terminal:
+    state: FULL
+    evidence:
+      - "Host provides integrated terminal execution."
 ```
 
-The selected policy must be documented.
+Evidence should describe observable or documented behavior.
 
----
+It should not rely on assumptions such as:
 
-# 39. User-Owned Files
-
-Never assume every file in a skill directory belongs to The-Builder.
-
-Ownership should be established through:
-
-```text
-manifest
-installation metadata
-known generated structure
-```
-
-where possible.
-
----
-
-# 40. Non-Destructive Installation
-
-Installation should avoid:
-
-```text
-overwriting unrelated files
-deleting unknown files
-rewriting user configuration
-changing project dependencies
-```
-
-unless explicitly required and authorized.
-
----
-
-# 41. Upgrade
-
-An upgrade should:
-
-```text
-inspect current installation
-→ compare versions
-→ determine changed skills
-→ update owned files
-→ preserve unrelated files
-→ update manifest
-→ verify
+```yaml
+evidence:
+  - "The agent probably has terminal access."
 ```
 
 ---
 
-# 42. Downgrade
+## 21. Compatibility
 
-Downgrades should not be assumed to be safe.
-
-If supported, the adapter should:
-
-```text
-identify current version
-→ determine target version
-→ check compatibility
-→ restore supported skill versions
-→ verify
-```
-
----
-
-# 43. Uninstall
-
-Uninstallation should remove only The-Builder-owned artifacts.
-
-It should not remove:
-
-```text
-user-created files
-unrelated skills
-agent configuration unrelated to The-Builder
-```
-
----
-
-# 44. Installation Verification
-
-After installation, verify:
-
-```text
-expected directories exist
-expected SKILL.md files exist
-manifest exists
-skill count matches selection
-target paths are correct
-```
-
----
-
-# 45. Adapter Verification
-
-Adapter tests should verify behavior rather than only file existence.
-
-Examples:
-
-```text
-correct target selected
-skills copied to correct location
-existing configuration preserved
-manifest generated correctly
-unsupported target rejected
-dependency resolution works
-```
-
----
-
-# 46. Failure Handling
-
-When installation fails:
-
-```text
-report the failure
-identify the stage
-avoid partial silent state
-preserve unrelated user data
-```
-
-Where practical, clean up incomplete The-Builder-owned artifacts.
-
----
-
-# 47. Partial Installation
-
-If partial installation cannot be avoided, record it.
+Adapters may declare compatibility information.
 
 Example:
 
-```text
-Status: PARTIAL
+```yaml
+compatibility:
+  operating_systems:
+    - macos
+    - linux
+    - windows
 
-Installed:
-- 12 of 15 skills
-
-Failed:
-- reviewer
-- security
-- seo
-
-Reason:
-Target directory was not writable.
+  requirements:
+    - "Agent must support project-level skills."
 ```
+
+Compatibility requirements must be specific enough to be testable.
 
 ---
 
-# 48. Dry Run
+## 22. Limitations
 
-Adapters should support a dry-run concept where practical.
+Known limitations should be explicitly declared.
 
-A dry run should show:
+Example:
 
-```text
-target
-skills
-paths
-configuration changes
-potential conflicts
+```yaml
+limitations:
+  - "Global skill installation is not supported."
+  - "Browser capabilities require an external integration."
 ```
 
-without modifying the project.
+Limitations are preferable to silently falling back to behavior that the host does not officially support.
 
 ---
 
-# 49. Determinism
+## 23. Verification
 
-Given the same:
+Adapters should define how installation or integration can be verified.
 
-```text
-repository state
-agent target
-skill selection
-configuration
+Example:
+
+```yaml
+verification:
+  project:
+    expected_path: ".opencode/skills/"
 ```
 
-the adapter should produce the same installation plan.
+Verification should establish that the adapter's claimed installation state actually exists.
 
-Avoid hidden state where possible.
+An adapter must not report successful installation solely because a command completed without an error.
 
 ---
 
-# 50. Portability
+## 24. Agent-Agnostic Skills
 
-Canonical skills must remain portable.
+Canonical skills must remain independent of adapters.
 
-An adapter may translate:
+For example:
 
 ```text
-installation
-metadata
-activation
-capability detection
+skills/security/SKILL.md
 ```
 
-but should not fork the skill's fundamental methodology.
+must describe the security methodology.
+
+It must not contain instructions such as:
+
+```text
+Use the OpenCode terminal.
+Use Claude Code commands.
+Write this file to .cursor/.
+```
+
+Those concerns belong to the adapter or integration layer.
 
 ---
 
-# 51. Agent-Specific Extensions
+## 25. Adapter vs Integration
 
-Agent-specific extensions are permitted when necessary.
+Adapters and integrations have different responsibilities.
 
-Examples:
+### Adapter
 
-```text
-native skill metadata
-native configuration
-agent-specific activation
-agent-specific capability mapping
-```
-
-Extensions belong in:
+Describes:
 
 ```text
-adapters/<agent>/
+How Nexra fits a host.
 ```
 
-not inside canonical skills.
+### Integration
+
+Describes:
+
+```text
+How Nexra accesses or uses an external capability.
+```
+
+Examples of integrations include:
+
+```text
+filesystem
+shell
+browser
+git
+GitHub
+database
+MCP
+HTTP
+container
+```
+
+An adapter may depend on integrations, but it should not redefine them.
 
 ---
 
-# 52. Generic Adapter
+## 26. Adapter vs Skill
 
-The generic adapter exists for environments without a dedicated native integration.
+A skill defines methodology.
 
-It should provide the most portable supported mechanism.
+An adapter defines host compatibility.
 
-It must clearly document limitations.
+For example:
+
+```text
+Security Skill
+    ↓
+Security methodology
+    ↓
+Claude Code Adapter
+    ↓
+Claude Code skill discovery / installation
+```
+
+The security methodology remains identical regardless of the host.
 
 ---
 
-# 53. Adapter Directory Structure
+## 27. Registry
 
-Recommended structure:
+All supported adapters must be registered in:
+
+```text
+adapters/registry.yaml
+```
+
+The registry is the authoritative index of adapter manifests.
+
+An adapter directory that is not registered must not be treated as a supported Nexra adapter.
+
+Conversely, the registry must not reference a missing adapter.
+
+---
+
+## 28. Adapter Directory Structure
+
+The canonical structure is:
 
 ```text
 adapters/
-└── <agent>/
-    ├── README.md
+├── README.md
+├── registry.yaml
+│
+├── antigravity/
+│   └── adapter.yaml
+├── claude-code/
+│   └── adapter.yaml
+├── cline/
+│   └── adapter.yaml
+├── codex/
+│   └── adapter.yaml
+├── cursor/
+│   └── adapter.yaml
+├── gemini/
+│   └── adapter.yaml
+├── generic/
+│   └── adapter.yaml
+├── github-copilot/
+│   └── adapter.yaml
+├── kiro/
+│   └── adapter.yaml
+├── opencode/
+│   └── adapter.yaml
+├── openhands/
+│   └── adapter.yaml
+└── roo/
     └── adapter.yaml
 ```
 
-Optional files may be added when required.
+Individual adapter README files are not required.
 
----
-
-# 54. `adapter.yaml`
-
-A minimal adapter definition:
-
-```yaml
-id: example-agent
-name: Example Agent
-version: "0.1.0"
-
-adapter:
-  schema_version: "1.0"
-  platform: example-agent
-
-skills:
-  source: skills/
-  target: .example/skills/
-
-capabilities:
-  filesystem: true
-  terminal: true
-  browser: false
-```
-
----
-
-# 55. Adapter README
-
-Each adapter README should explain:
+Adapter documentation is maintained collectively in:
 
 ```text
-supported target
-installation behavior
-skill location
-capability limitations
-configuration behavior
-verification
-known limitations
+adapters/README.md
 ```
 
 ---
 
-# 56. Agent Independence
+## 29. Validation Requirements
 
-Canonical skills must not contain instructions such as:
+A valid adapter must satisfy all of the following:
+
+1. Its directory exists.
+2. Its `adapter.yaml` exists.
+3. Its `id` is present.
+4. Its `id` matches the adapter directory.
+5. Its `name` is present.
+6. Its `adapter.schema_version` is present.
+7. Its `adapter.version` is present.
+8. Its `adapter.platform` is present.
+9. Its `installation` section is present.
+10. Its `skills` section is present.
+11. Its `capabilities` section is present.
+12. Its adapter is registered in `adapters/registry.yaml`.
+13. The registry does not contain missing adapters.
+14. The manifest does not maintain a second canonical skill source.
+15. The manifest follows the schema defined by this document.
+
+---
+
+## 30. Versioning Rules
+
+Adapter changes should follow normal semantic versioning principles.
+
+Changes to adapter behavior may require an adapter version change.
+
+Changes to the adapter manifest structure require a schema version change.
+
+Changes to Nexra itself do not automatically require every adapter's implementation version to change.
+
+---
+
+## 31. Evidence Over Assumption
+
+Nexra adapters must prefer verified host behavior over assumptions.
+
+When host behavior is unknown:
 
 ```text
-Use Claude's specific tool X.
+unknown
 ```
 
-unless that information belongs to an adapter-specific implementation.
-
-Instead:
+is preferable to:
 
 ```text
-Use the available browser capability to inspect the rendered page.
+supported
 ```
 
-The adapter determines how that capability is exposed.
+An adapter should not claim support simply because a similar agent provides that capability.
+
+This principle is especially important for:
+
+- installation paths;
+- global configuration;
+- skill discovery;
+- tool access;
+- MCP support;
+- browser access;
+- filesystem access;
+- terminal execution.
 
 ---
 
-# 57. MCP
+## 32. Design Goal
 
-MCP availability is a capability concern.
+The adapter system should allow Nexra to support additional AI coding agents without modifying the canonical skills.
 
-An adapter may detect or configure MCP integration when the target supports it.
-
-The canonical skill should describe the capability required, not assume a particular MCP server.
-
----
-
-# 58. Tools vs Skills
-
-Adapters must preserve the distinction:
+The intended architecture is:
 
 ```text
-Skill
-= methodology
-
-Tool
-= capability/action
-
-MCP
-= protocol for exposing capabilities/tools
+                 ┌─────────────────────┐
+                 │   Canonical Skills  │
+                 └──────────┬──────────┘
+                            │
+                ┌───────────┴───────────┐
+                │       Nexra Core      │
+                └───────────┬───────────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+      Adapter A         Adapter B         Adapter C
+          │                 │                 │
+       Agent A           Agent B           Agent C
 ```
 
-Installing a skill does not automatically imply that every tool required by that skill exists.
+Adding support for a new host should primarily require a new adapter rather than changes to the canonical skill methodology.
 
 ---
 
-# 59. Graceful Degradation
+## 33. Summary
 
-If optional capabilities are unavailable:
+Nexra separates four concerns:
 
 ```text
-install skill
-→ preserve methodology
-→ expose limitation
-→ allow capability assessment to adapt execution
+SKILLS
+Methodology
+
+CORE
+Contracts and orchestration
+
+ADAPTERS
+Host-specific translation and installation
+
+INTEGRATIONS
+External capabilities and systems
 ```
 
-Do not silently remove important instructions.
+This separation is a core architectural requirement.
 
----
-
-# 60. Security
-
-Adapters execute installation and configuration operations.
-
-They must therefore avoid:
-
-```text
-arbitrary remote code execution
-unexpected downloads
-credential collection
-silent configuration changes
-unsafe shell execution
-```
-
-Only perform required operations.
-
----
-
-# 61. Remote Sources
-
-If skills are downloaded remotely:
-
-```text
-verify source
-validate package
-prefer integrity checks
-avoid executing downloaded content during installation
-```
-
-Do not execute arbitrary repository content merely to install Markdown skills.
-
----
-
-# 62. Path Safety
-
-Adapters must prevent path traversal.
-
-A skill path such as:
-
-```text
-../../some-file
-```
-
-must not be allowed to escape the intended installation root.
-
----
-
-# 63. Permission Errors
-
-If the destination is not writable:
-
-```text
-report the permission problem
-```
-
-Do not bypass operating-system protections through unsafe privilege escalation.
-
----
-
-# 64. Platform Differences
-
-Adapters may account for:
-
-```text
-Windows
-macOS
-Linux
-```
-
-and differences in:
-
-- paths;
-- executables;
-- shell behavior;
-- configuration locations.
-
-Canonical skills remain platform-neutral unless the task itself is platform-specific.
-
----
-
-# 65. Adapter Reporting
-
-Installation reports should include:
-
-```text
-target
-scope
-skills installed
-skills skipped
-skills failed
-destination
-verification
-limitations
-```
-
-Example:
-
-```text
-Target: OpenCode
-Scope: project
-
-Installed:
-15 skills
-
-Destination:
-.opencode/skills/
-
-Verification:
-15/15 skill files present
-
-Status:
-COMPLETE
-```
-
----
-
-# 66. Adapter Errors
-
-Use actionable errors.
-
-Weak:
-
-```text
-Adapter failed.
-```
-
-Strong:
-
-```text
-OpenCode target directory could not be determined.
-Specify a project target or use the generic adapter.
-```
-
----
-
-# 67. Adapter Testing
-
-Every adapter should have tests covering, where applicable:
-
-- metadata validity;
-- target detection;
-- installation;
-- skill count;
-- path resolution;
-- dependency handling;
-- manifest generation;
-- conflict handling;
-- unsupported environments;
-- preservation of existing configuration.
-
----
-
-# 68. Adapter Completion Criteria
-
-An adapter is considered complete when:
-
-- [ ] adapter metadata is valid;
-- [ ] target platform is clearly identified;
-- [ ] installation location is deterministic;
-- [ ] canonical skills are consumed without methodology forks;
-- [ ] capability limitations are represented honestly;
-- [ ] user configuration is preserved;
-- [ ] installation is verifiable;
-- [ ] failure behavior is defined;
-- [ ] ownership is clear;
-- [ ] tests cover important adapter behavior;
-- [ ] documentation describes limitations.
-
----
-
-# 69. Adapter Anti-Patterns
-
-## Skill Forking
-
-Maintaining a provider-specific copy of canonical methodology.
-
-## Provider Leakage
-
-Embedding provider-specific instructions inside canonical skills.
-
-## Blind Overwrite
-
-Replacing user configuration without inspection.
-
-## False Detection
-
-Assuming an agent is installed without sufficient evidence.
-
-## Capability Fabrication
-
-Claiming tools exist because the target theoretically supports them.
-
-## Unowned Cleanup
-
-Deleting files without establishing ownership.
-
-## Silent Partial Install
-
-Leaving an incomplete installation without reporting it.
-
-## Arbitrary Execution
-
-Executing downloaded or untrusted content during installation.
-
-## Path Traversal
-
-Allowing skill paths to escape the installation root.
-
-## Configuration Destruction
-
-Replacing an entire configuration file for a small integration change.
-
----
-
-# 70. Final Adapter Model
-
-The adapter architecture is:
-
-```text
-                    THE-BUILDER
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-       Canonical Skills        Core Contracts
-              │                     │
-              └──────────┬──────────┘
-                         │
-                    Adapter Layer
-                         │
-       ┌─────────┬───────┼────────┬─────────┐
-       ↓         ↓       ↓        ↓         ↓
-   OpenCode   Claude   Gemini   Cursor    Generic
-```
-
-The canonical system remains stable.
-
-Adapters translate it into the conventions and capabilities of individual agents.
-
----
-
-# 71. Final Principle
-
-The adapter layer exists to solve:
-
-> "How does this agent consume The-Builder?"
-
-It must not change:
-
-> "How should The-Builder work?"
-
-That distinction keeps the project portable, maintainable, and independent of any single AI coding agent.
+Adapters make Nexra portable across AI coding environments without coupling the canonical skill system to any particular provider.

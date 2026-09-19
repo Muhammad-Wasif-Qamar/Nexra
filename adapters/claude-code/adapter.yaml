@@ -1,17 +1,44 @@
-adapter_version: 0.5.0
-target: claude-code
-skill_source: ../../skills
+id: claude-code
+name: Claude Code
+
+adapter:
+  schema_version: "1.0"
+  version: "0.1.0"
+  platform: claude-code
+
+detection:
+  commands:
+    - claude
+
 installation:
-  mode: native-skill-directory
-  project: .claude/skills
-  global: ~/.claude/skills
-  source: The-Builder repository
-claims:
-  verified: true
-  verification_scope: documented-skill-discovery
-  source: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
-capability_notes:
-  filesystem: host-dependent
-  terminal: host-dependent
-  browser: host-dependent
-  mcp: host-dependent
+  project:
+    supported: true
+    target: ".claude/skills/"
+  global:
+    supported: true
+    target: "~/.claude/skills/"
+  strategy: native-skill-directory
+
+skills:
+  source: "skills/"
+  discovery: native
+
+capabilities:
+  discovery: true
+  filesystem: true
+  terminal: true
+  browser: unknown
+  mcp: unknown
+
+compatibility:
+  status: verified
+  evidence:
+    - "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
+  notes:
+    - "Claude Code documents project and personal skill directories."
+
+verification:
+  project:
+    expected_path: ".claude/skills/"
+  global:
+    expected_path: "~/.claude/skills/"

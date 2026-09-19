@@ -8,10 +8,13 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
+ERRORS = []
+WARNINGS = []
 
-# ---------------------------------------------------------------------------
-# Canonical inventories
-# ---------------------------------------------------------------------------
+
+# ============================================================================
+# Canonical inventory
+# ============================================================================
 
 EXPECTED_SKILLS = [
     "project-discovery",
@@ -31,7 +34,15 @@ EXPECTED_SKILLS = [
     "reviewer",
 ]
 
-FOUNDATION_SKILLS = EXPECTED_SKILLS[:7]
+FOUNDATION_SKILLS = [
+    "project-discovery",
+    "capability-assessment",
+    "interaction",
+    "challenge",
+    "execution",
+    "verification",
+    "reporting",
+]
 
 EXPECTED_ADAPTERS = [
     "generic",
@@ -96,7 +107,7 @@ REQUIRED_REPOSITORY_FILES = [
     "integrations/registry.yaml",
     "scripts/validate.py",
     "scripts/test_suite.py",
-    "cli/bin/the-builder.js",
+    "cli/bin/nexra.js",
 ]
 
 REQUIRED_TEST_FILES = [
@@ -109,13 +120,9 @@ REQUIRED_TEST_FILES = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# Behavioral expectations
-#
-# These are intentionally concept-based rather than exact-heading based.
-# A skill may structure itself differently while still being required to
-# teach the behavior represented by its purpose.
-# ---------------------------------------------------------------------------
+# ============================================================================
+# Skill behavioral concepts
+# ============================================================================
 
 SKILL_CONCEPTS = {
     "project-discovery": [
@@ -252,13 +259,9 @@ SKILL_CONCEPTS = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Error / warning handling
-# ---------------------------------------------------------------------------
-
-ERRORS = []
-WARNINGS = []
-
+# ============================================================================
+# General helpers
+# ============================================================================
 
 def error(message):
     ERRORS.append(message)
@@ -272,35 +275,15 @@ def read(path):
     return path.read_text(encoding="utf-8")
 
 
-# ---------------------------------------------------------------------------
-# Generic helpers
-# ---------------------------------------------------------------------------
-
 def meaningful_lines(content):
-    """
-    Count substantive lines while ignoring blank lines and YAML delimiters.
-    """
-    count = 0
-
-    for line in content.splitlines():
-        stripped = line.strip()
-
-        if not stripped:
-            continue
-
-        if stripped in {"---", "```"}:
-            continue
-
-        count += 1
-
-    return count
+    return sum(
+        1
+        for line in content.splitlines()
+        if line.strip() and line.strip() not in {"---", "```"}
+    )
 
 
 def heading_levels(content):
-    """
-    Return Markdown heading levels while ignoring headings inside fenced
-    code blocks.
-    """
     levels = []
     in_fence = False
 
@@ -309,21 +292,23 @@ def heading_levels(content):
             in_fence = not in_fence
             continue
 
-        if in_fence:
-            continue
-
-        match = re.match(r"^(#{1,6})\s+", line)
-
-        if match:
-            levels.append(len(match.group(1)))
+        if not in_fence:
+            match = re.match(r"^(#{1,6})\s+", line)
+            if match:
+                levels.append(len(match.group(1)))
 
     return levels
 
 
+def contains_any(text, terms):
+    return any(term.lower() in text.lower() for term in terms)
+
+
+# ============================================================================
+# Markdown validation
+# ============================================================================
+
 def frontmatter(content, expected_name):
-    """
-    Validate simple canonical frontmatter.
-    """
     match = re.match(
         r"^---\n(.*?)\n---\n",
         content,
@@ -331,13 +316,14 @@ def frontmatter(content, expected_name):
     )
 
     if not match:
-        error(f"{expected_name}: invalid or missing front matter")
+        error(
+            f"{expected_name}: invalid or missing front matter"
+        )
         return None
 
-    block = match.group(1)
     fields = {}
 
-    for line in block.splitlines():
+    for line in match.group(1).splitlines():
         field_match = re.match(
             r"^([A-Za-z0-9_-]+):\s*(.*)$",
             line,
@@ -351,139 +337,142 @@ def frontmatter(content, expected_name):
     for key in ("name", "description", "version"):
         if not fields.get(key):
             error(
-                f"{expected_name}: missing frontmatter field '{key}'"
+                f"{expected_name}: "
+                f"missing frontmatter field '{key}'"
             )
 
-    declared_name = fields.get("name")
-
-    if declared_name and declared_name != expected_name:
+    if (
+        fields.get("name")
+        and fields["name"] != expected_name
+    ):
         error(
-            f"{expected_name}: frontmatter name mismatch "
-            f"(declared '{declared_name}')"
+            f"{expected_name}: "
+            f"frontmatter name mismatch "
+            f"(declared '{fields['name']}')"
         )
-
-    version = fields.get("version", "")
 
     if not re.fullmatch(
         r"[0-9]+\.[0-9]+\.[0-9]+",
-        version,
+        fields.get("version", ""),
     ):
         error(
-            f"{expected_name}: version must use semantic version format"
+            f"{expected_name}: "
+            "version must use semantic version format"
         )
 
     return fields
 
 
 def validate_concepts(skill_name, content):
-    """
-    Validate that a skill teaches concepts appropriate to its purpose.
-
-    Each concept group is an OR group. Every group must have at least one
-    matching term.
-    """
-    groups = SKILL_CONCEPTS.get(skill_name, [])
     lower = content.lower()
 
-    for group in groups:
-        if not any(term.lower() in lower for term in group):
-            expected = " / ".join(group)
-
+    for group in SKILL_CONCEPTS.get(skill_name, []):
+        if not any(
+            term.lower() in lower
+            for term in group
+        ):
             error(
-                f"{skill_name}: missing behavioral concept "
-                f"({expected})"
+                f"{skill_name}: "
+                "missing behavioral concept "
+                f"({' / '.join(group)})"
             )
 
 
-def is_markdown_fence(line):
-    return bool(re.match(r"^\s*```", line))
-
-
-# ---------------------------------------------------------------------------
-# Skill validation
-# ---------------------------------------------------------------------------
-
 def validate_skill(skill_name):
-    path = ROOT / "skills" / skill_name / "SKILL.md"
+    path = (
+        ROOT
+        / "skills"
+        / skill_name
+        / "SKILL.md"
+    )
 
     if not path.is_file():
-        error(f"missing skill: {skill_name}")
+        error(
+            f"missing skill: {skill_name}"
+        )
         return
 
     content = read(path)
 
-    frontmatter(content, skill_name)
+    frontmatter(
+        content,
+        skill_name,
+    )
 
     if "⸻" in content:
-        error(f"{skill_name}: corruption marker found")
+        error(
+            f"{skill_name}: corruption marker found"
+        )
 
     lower = content.lower()
 
-    # Only flag tokens that are strong evidence of unfinished content.
-    # Phrases such as "avoid placeholder content" are legitimate prose.
-    placeholder_tokens = [
+    for token in [
         "lorem ipsum",
         "todo: fill",
         "replace this",
-    ]
-
-    for token in placeholder_tokens:
+    ]:
         if token in lower:
             error(
-                f"{skill_name}: placeholder content found: {token}"
+                f"{skill_name}: "
+                f"placeholder content found: {token}"
             )
 
-    fence_count = len(
+    if len(
         re.findall(
             r"^\s*```",
             content,
             re.MULTILINE,
         )
-    )
-
-    if fence_count % 2:
-        error(f"{skill_name}: unbalanced code fences")
-
-    line_count = meaningful_lines(content)
-
-    if line_count < 40:
+    ) % 2:
         error(
-            f"{skill_name}: suspiciously small "
-            f"({line_count} meaningful lines)"
+            f"{skill_name}: "
+            "unbalanced code fences"
         )
 
-    # Every skill must have a title.
+    count = meaningful_lines(content)
+
+    if count < 40:
+        error(
+            f"{skill_name}: "
+            f"suspiciously small ({count} meaningful lines)"
+        )
+
     if not re.search(
         r"^#\s+\S+",
         content,
         re.MULTILINE,
     ):
-        error(f"{skill_name}: missing top-level title")
+        error(
+            f"{skill_name}: "
+            "missing top-level title"
+        )
 
-    # Do not force identical headings across every skill.
-    # Only reject clearly malformed heading jumps.
     levels = heading_levels(content)
 
     if levels:
-        first = levels[0]
-
-        if first != 1:
+        if levels[0] != 1:
             warning(
-                f"{skill_name}: first Markdown heading is H{first}; "
-                "H1 is recommended"
+                f"{skill_name}: "
+                f"first Markdown heading is H{levels[0]}"
             )
 
-        for previous, current in zip(levels, levels[1:]):
+        for previous, current in zip(
+            levels,
+            levels[1:],
+        ):
             if current - previous > 2:
                 error(
-                    f"{skill_name}: excessive heading hierarchy jump "
+                    f"{skill_name}: "
+                    f"excessive heading hierarchy jump "
                     f"{previous}->{current}"
                 )
 
-    validate_concepts(skill_name, content)
+    validate_concepts(
+        skill_name,
+        content,
+    )
 
-    # Canonical skills must remain provider agnostic.
-    forbidden_provider_tokens = [
+    provider_tokens = [
         ".claude/skills/",
         ".opencode/",
         "opencode.json",
@@ -495,34 +484,37 @@ def validate_skill(skill_name):
         "openai codex only",
     ]
 
-    for token in forbidden_provider_tokens:
+    for token in provider_tokens:
         if token in lower:
             error(
-                f"{skill_name}: provider-specific token found: {token}"
+                f"{skill_name}: "
+                f"provider-specific token found: {token}"
             )
 
-
-# ---------------------------------------------------------------------------
-# Skill inventory
-# ---------------------------------------------------------------------------
 
 def validate_skill_inventory():
     skills_root = ROOT / "skills"
 
     if not skills_root.is_dir():
-        error("missing skills directory")
+        error(
+            "missing skills directory"
+        )
         return
 
     discovered = sorted(
         path.parent.name
-        for path in skills_root.glob("*/SKILL.md")
+        for path in skills_root.glob(
+            "*/SKILL.md"
+        )
     )
 
-    expected = sorted(EXPECTED_SKILLS)
+    expected = sorted(
+        EXPECTED_SKILLS
+    )
 
     if discovered != expected:
         error(
-            "skill inventory mismatch: "
+            f"skill inventory mismatch: "
             f"expected {len(expected)}, "
             f"found {len(discovered)}"
         )
@@ -537,19 +529,23 @@ def validate_skill_inventory():
 
         if missing:
             error(
-                f"missing skills: {', '.join(missing)}"
+                f"missing skills: "
+                f"{', '.join(missing)}"
             )
 
         if extra:
             error(
-                f"unexpected skills: {', '.join(extra)}"
+                f"unexpected skills: "
+                f"{', '.join(extra)}"
             )
 
     for skill in EXPECTED_SKILLS:
         validate_skill(skill)
 
-    # The old split concept must never return.
-    obsolete = skills_root / "fly-by-animation"
+    obsolete = (
+        skills_root
+        / "fly-by-animation"
+    )
 
     if obsolete.exists():
         error(
@@ -557,33 +553,35 @@ def validate_skill_inventory():
             "skills/fly-by-animation"
         )
 
-    merged = skills_root / "scroll-world-flyby" / "SKILL.md"
+    merged = (
+        skills_root
+        / "scroll-world-flyby"
+        / "SKILL.md"
+    )
 
     if merged.is_file():
         content = read(merged).lower()
 
-        merged_concept_terms = [
-            "scroll world",
-            "fly-by",
-            "flyby",
-            "scroll-driven",
-        ]
-
         matched = sum(
             term in content
-            for term in merged_concept_terms
+            for term in [
+                "scroll world",
+                "fly-by",
+                "flyby",
+                "scroll-driven",
+            ]
         )
 
         if matched < 2:
             error(
-                "scroll-world-flyby does not clearly document "
-                "the merged scroll/fly-by discipline"
+                "scroll-world-flyby does not clearly "
+                "document the merged scroll/fly-by discipline"
             )
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Repository files
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 def validate_repository_files():
     for relative in REQUIRED_REPOSITORY_FILES:
@@ -595,45 +593,45 @@ def validate_repository_files():
             )
             continue
 
-        # .gitignore may intentionally be minimal.
-        if relative != ".gitignore" and not read(path).strip():
+        if (
+            relative != ".gitignore"
+            and not read(path).strip()
+        ):
             error(
                 f"empty repository file: {relative}"
             )
 
-
-# ---------------------------------------------------------------------------
-# Markdown
-# ---------------------------------------------------------------------------
 
 def validate_markdown():
     for path in ROOT.rglob("*.md"):
         if ".git" in path.parts:
             continue
 
-        content = read(path)
+        try:
+            content = read(path)
+        except (
+            UnicodeDecodeError,
+            OSError,
+        ):
+            continue
+
         relative = path.relative_to(ROOT)
 
-        fence_count = len(
+        if len(
             re.findall(
                 r"^\s*```",
                 content,
                 re.MULTILINE,
             )
-        )
-
-        if fence_count % 2:
+        ) % 2:
             error(
                 f"unbalanced code fences: {relative}"
             )
 
-        # Validate relative Markdown links.
-        links = re.findall(
-            r"\]$begin:math:text$\$begin:math:text$\\\[\\\^$end:math:text$\#\]\+\)$end:math:text$",
+        for target in re.findall(
+            r"\]\(([^)]+)\)",
             content,
-        )
-
-        for target in links:
+        ):
             target = target.strip()
 
             if (
@@ -643,7 +641,9 @@ def validate_markdown():
             ):
                 continue
 
-            target_path = (path.parent / target).resolve()
+            target_path = (
+                path.parent / target
+            ).resolve()
 
             if not target_path.exists():
                 error(
@@ -652,18 +652,8 @@ def validate_markdown():
                 )
 
 
-# ---------------------------------------------------------------------------
-# Canonical skill location
-# ---------------------------------------------------------------------------
-
 def validate_no_obsolete_skill_files():
-    """
-    Canonical installable skills live under skills/.
-
-    Supporting contracts may exist under core/, but old duplicated canonical
-    SKILL.md definitions should not remain there.
-    """
-    obsolete_core_skills = [
+    obsolete = [
         ROOT / "core" / "discovery" / "SKILL.md",
         ROOT / "core" / "capability" / "SKILL.md",
         ROOT / "core" / "interaction" / "SKILL.md",
@@ -673,7 +663,7 @@ def validate_no_obsolete_skill_files():
         ROOT / "core" / "reporting" / "SKILL.md",
     ]
 
-    for path in obsolete_core_skills:
+    for path in obsolete:
         if path.exists():
             error(
                 "obsolete canonical skill file exists: "
@@ -681,471 +671,1395 @@ def validate_no_obsolete_skill_files():
             )
 
 
-# ---------------------------------------------------------------------------
-# Adapters
-# ---------------------------------------------------------------------------
+# ============================================================================
+# Dependency-free YAML parser
+# ============================================================================
 
-def validate_adapters():
-    adapters_root = ROOT / "adapters"
+def strip_yaml_comment(value):
+    value = value.strip()
 
-    if not adapters_root.is_dir():
-        error("missing adapters directory")
-        return
+    if not value:
+        return value
 
-    # adapters/generic/adapter.yaml -> parent.name == "generic"
-    # path.stem would incorrectly produce "adapter".
-    discovered = sorted(
-        path.parent.name
-        for path in adapters_root.glob("*/adapter.yaml")
+    if value.startswith(("'", '"')):
+        return value
+
+    in_single = False
+    in_double = False
+
+    for index, char in enumerate(value):
+        if char == "'" and not in_double:
+            in_single = not in_single
+
+        elif char == '"' and not in_single:
+            in_double = not in_double
+
+        elif (
+            char == "#"
+            and not in_single
+            and not in_double
+        ):
+            if (
+                index == 0
+                or value[index - 1].isspace()
+            ):
+                return value[:index].rstrip()
+
+    return value
+
+
+def split_inline_items(value):
+    items = []
+
+    current = []
+    in_single = False
+    in_double = False
+
+    for char in value:
+        if char == "'" and not in_double:
+            in_single = not in_single
+            current.append(char)
+            continue
+
+        if char == '"' and not in_single:
+            in_double = not in_double
+            current.append(char)
+            continue
+
+        if (
+            char == ","
+            and not in_single
+            and not in_double
+        ):
+            items.append(
+                "".join(current).strip()
+            )
+            current = []
+        else:
+            current.append(char)
+
+    if current:
+        items.append(
+            "".join(current).strip()
+        )
+
+    return items
+
+
+def parse_scalar(value):
+    value = strip_yaml_comment(
+        value
+    ).strip()
+
+    if (
+        len(value) >= 2
+        and value[0] == value[-1]
+        and value[0] in "\"'"
+    ):
+        return value[1:-1]
+
+    if value == "[]":
+        return []
+
+    if value == "{}":
+        return {}
+
+    if value.lower() == "true":
+        return True
+
+    if value.lower() == "false":
+        return False
+
+    if value.lower() in {
+        "null",
+        "~",
+    }:
+        return None
+
+    if (
+        value.startswith("[")
+        and value.endswith("]")
+    ):
+        inner = value[1:-1].strip()
+
+        if not inner:
+            return []
+
+        return [
+            parse_scalar(item)
+            for item in split_inline_items(
+                inner
+            )
+        ]
+
+    return value
+
+
+def prepare_yaml_lines(content):
+    lines = []
+
+    for number, raw in enumerate(
+        content.splitlines(),
+        start=1,
+    ):
+        if "\t" in raw:
+            raise ValueError(
+                f"line {number}: tabs are not allowed"
+            )
+
+        if not raw.strip():
+            continue
+
+        stripped = raw.lstrip(" ")
+
+        if stripped.startswith("#"):
+            continue
+
+        indent = (
+            len(raw)
+            - len(stripped)
+        )
+
+        lines.append(
+            {
+                "number": number,
+                "indent": indent,
+                "text": stripped.rstrip(),
+            }
+        )
+
+    return lines
+
+
+def mapping_key(text):
+    match = re.match(
+        r"^([A-Za-z0-9_.-]+):(?:\s+(.*))?$",
+        text,
     )
 
-    expected = sorted(EXPECTED_ADAPTERS)
+    if not match:
+        return None
+
+    return (
+        match.group(1),
+        match.group(2),
+    )
+
+
+def parse_yaml_block(
+    lines,
+    index,
+    indent,
+):
+    if index >= len(lines):
+        raise ValueError(
+            "unexpected end of YAML"
+        )
+
+    if lines[index]["indent"] != indent:
+        raise ValueError(
+            f"line {lines[index]['number']}: "
+            "invalid indentation"
+        )
+
+    if lines[index]["text"].startswith("- "):
+        return parse_yaml_list(
+            lines,
+            index,
+            indent,
+        )
+
+    return parse_yaml_mapping(
+        lines,
+        index,
+        indent,
+    )
+
+
+def parse_yaml_mapping(
+    lines,
+    index,
+    indent,
+):
+    result = {}
+
+    while index < len(lines):
+        line = lines[index]
+
+        if line["indent"] < indent:
+            break
+
+        if line["indent"] > indent:
+            raise ValueError(
+                f"line {line['number']}: "
+                "unexpected indentation"
+            )
+
+        text = line["text"]
+
+        if text.startswith("- "):
+            break
+
+        parsed = mapping_key(text)
+
+        if parsed is None:
+            raise ValueError(
+                f"line {line['number']}: "
+                "invalid mapping syntax"
+            )
+
+        key, value_text = parsed
+
+        if key in result:
+            raise ValueError(
+                f"line {line['number']}: "
+                f"duplicate key '{key}'"
+            )
+
+        index += 1
+
+        if value_text is not None:
+            result[key] = parse_scalar(
+                value_text
+            )
+            continue
+
+        if (
+            index < len(lines)
+            and lines[index]["indent"] > indent
+        ):
+            child_indent = (
+                lines[index]["indent"]
+            )
+
+            value, index = parse_yaml_block(
+                lines,
+                index,
+                child_indent,
+            )
+
+            result[key] = value
+
+        else:
+            result[key] = None
+
+    return result, index
+
+
+def parse_yaml_list(
+    lines,
+    index,
+    indent,
+):
+    result = []
+
+    while index < len(lines):
+        line = lines[index]
+
+        if line["indent"] < indent:
+            break
+
+        if line["indent"] > indent:
+            raise ValueError(
+                f"line {line['number']}: "
+                "unexpected list indentation"
+            )
+
+        text = line["text"]
+
+        if not text.startswith("- "):
+            break
+
+        item_text = text[2:].strip()
+
+        index += 1
+
+        if not item_text:
+            if (
+                index < len(lines)
+                and lines[index]["indent"] > indent
+            ):
+                child_indent = (
+                    lines[index]["indent"]
+                )
+
+                child, index = parse_yaml_block(
+                    lines,
+                    index,
+                    child_indent,
+                )
+
+                result.append(child)
+            else:
+                result.append(None)
+
+            continue
+
+        parsed = mapping_key(item_text)
+
+        if parsed is None:
+            result.append(
+                parse_scalar(item_text)
+            )
+            continue
+
+        key, value_text = parsed
+
+        item = {}
+
+        if value_text is None:
+            if (
+                index < len(lines)
+                and lines[index]["indent"] > indent
+            ):
+                child_indent = (
+                    lines[index]["indent"]
+                )
+
+                child, index = parse_yaml_block(
+                    lines,
+                    index,
+                    child_indent,
+                )
+
+                item[key] = child
+            else:
+                item[key] = None
+
+        else:
+            item[key] = parse_scalar(
+                value_text
+            )
+
+        if (
+            index < len(lines)
+            and lines[index]["indent"] > indent
+        ):
+            child_indent = (
+                lines[index]["indent"]
+            )
+
+            child, index = parse_yaml_block(
+                lines,
+                index,
+                child_indent,
+            )
+
+            if not isinstance(child, dict):
+                raise ValueError(
+                    "list item continuation "
+                    "must be a mapping"
+                )
+
+            for child_key, child_value in child.items():
+                if child_key in item:
+                    raise ValueError(
+                        f"duplicate list-item key "
+                        f"'{child_key}'"
+                    )
+
+                item[child_key] = child_value
+
+        result.append(item)
+
+    return result, index
+
+
+def parse_simple_yaml(content):
+    """
+    Parse the constrained YAML subset used by Nexra.
+
+    This is intentionally NOT a general YAML parser.
+    """
+
+    lines = prepare_yaml_lines(content)
+
+    if not lines:
+        return {}
+
+    root_indent = lines[0]["indent"]
+
+    result, index = parse_yaml_block(
+        lines,
+        0,
+        root_indent,
+    )
+
+    if index != len(lines):
+        line = lines[index]
+
+        raise ValueError(
+            f"line {line['number']}: "
+            "could not parse YAML structure"
+        )
+
+    return result
+
+
+# ============================================================================
+# Adapter validation
+# ============================================================================
+
+def validate_semver(value, label):
+    if not isinstance(value, str):
+        error(
+            f"{label}: "
+            "must use semantic version format"
+        )
+        return
+
+    if not re.fullmatch(
+        r"[0-9]+\.[0-9]+\.[0-9]+",
+        value,
+    ):
+        error(
+            f"{label}: "
+            "must use semantic version format"
+        )
+
+
+def validate_adapter_manifest(
+    adapter,
+    manifest,
+):
+    try:
+        data = parse_simple_yaml(
+            read(manifest)
+        )
+
+    except ValueError as exc:
+        error(
+            f"adapter {adapter}: "
+            f"invalid manifest YAML: {exc}"
+        )
+        return
+
+    # ------------------------------------------------------------------------
+    # Required fields from ADAPTER-SPEC.md
+    # ------------------------------------------------------------------------
+
+    required = [
+        "id",
+        "name",
+        "adapter",
+        "installation",
+        "skills",
+        "capabilities",
+    ]
+
+    for key in required:
+        if key not in data:
+            error(
+                f"adapter {adapter}: "
+                f"missing top-level field '{key}'"
+            )
+
+    # ------------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------------
+
+    if data.get("id") != adapter:
+        error(
+            f"adapter {adapter}: "
+            f"id mismatch "
+            f"(declared '{data.get('id')}')"
+        )
+
+    if (
+        not isinstance(
+            data.get("name"),
+            str,
+        )
+        or not data.get(
+            "name",
+            "",
+        ).strip()
+    ):
+        error(
+            f"adapter {adapter}: "
+            "name must be a non-empty string"
+        )
+
+    # ------------------------------------------------------------------------
+    # Adapter metadata
+    # ------------------------------------------------------------------------
+
+    adapter_block = data.get(
+        "adapter"
+    )
+
+    if not isinstance(
+        adapter_block,
+        dict,
+    ):
+        error(
+            f"adapter {adapter}: "
+            "'adapter' must be a mapping"
+        )
+
+    else:
+        for key in (
+            "schema_version",
+            "version",
+            "platform",
+        ):
+            if key not in adapter_block:
+                error(
+                    f"adapter {adapter}: "
+                    f"missing adapter.{key}"
+                )
+
+        schema = str(
+            adapter_block.get(
+                "schema_version",
+                "",
+            )
+        )
+
+        if schema != "1.0":
+            error(
+                f"adapter {adapter}: "
+                f"unsupported adapter.schema_version "
+                f"'{schema}'"
+            )
+
+        validate_semver(
+            adapter_block.get("version"),
+            f"adapter {adapter}: "
+            "adapter.version",
+        )
+
+        if (
+            str(
+                adapter_block.get(
+                    "platform",
+                    "",
+                )
+            )
+            != adapter
+        ):
+            error(
+                f"adapter {adapter}: "
+                "adapter.platform mismatch"
+            )
+
+    # ------------------------------------------------------------------------
+    # Reject legacy adapter schema
+    # ------------------------------------------------------------------------
+
+    legacy_fields = [
+        "schema_version",
+        "version",
+        "type",
+        "target",
+        "claims",
+    ]
+
+    for field in legacy_fields:
+        if field in data:
+            error(
+                f"adapter {adapter}: "
+                f"legacy top-level field '{field}' "
+                "must be removed"
+            )
+
+    # ------------------------------------------------------------------------
+    # Installation
+    # ------------------------------------------------------------------------
+
+    installation = data.get(
+        "installation"
+    )
+
+    if not isinstance(
+        installation,
+        dict,
+    ):
+        error(
+            f"adapter {adapter}: "
+            "installation must be a mapping"
+        )
+
+    else:
+        for scope in (
+            "project",
+            "global",
+        ):
+            block = installation.get(
+                scope
+            )
+
+            if not isinstance(
+                block,
+                dict,
+            ):
+                error(
+                    f"adapter {adapter}: "
+                    f"installation.{scope} "
+                    "must be a mapping"
+                )
+                continue
+
+            supported = block.get(
+                "supported"
+            )
+
+            if not isinstance(
+                supported,
+                bool,
+            ):
+                error(
+                    f"adapter {adapter}: "
+                    f"installation.{scope}.supported "
+                    "must be boolean"
+                )
+
+            if supported:
+                target = block.get(
+                    "target"
+                )
+
+                if (
+                    not isinstance(
+                        target,
+                        str,
+                    )
+                    or not target.strip()
+                ):
+                    error(
+                        f"adapter {adapter}: "
+                        f"installation.{scope}.target "
+                        "must be a non-empty string "
+                        "when supported"
+                    )
+
+        strategy = installation.get(
+            "strategy"
+        )
+
+        if strategy is not None:
+            allowed = {
+                "native-skill-directory",
+                "portable-agent-skills",
+            }
+
+            if strategy not in allowed:
+                error(
+                    f"adapter {adapter}: "
+                    f"unsupported installation.strategy "
+                    f"'{strategy}'"
+                )
+
+    # ------------------------------------------------------------------------
+    # Skills
+    # ------------------------------------------------------------------------
+
+    skills = data.get(
+        "skills"
+    )
+
+    if not isinstance(
+        skills,
+        dict,
+    ):
+        error(
+            f"adapter {adapter}: "
+            "skills must be a mapping"
+        )
+
+    else:
+        source = skills.get(
+            "source"
+        )
+
+        if (
+            not isinstance(
+                source,
+                str,
+            )
+            or not source.strip()
+        ):
+            error(
+                f"adapter {adapter}: "
+                "skills.source must be a "
+                "non-empty string"
+            )
+
+        else:
+            manifest_relative = (
+                manifest.parent / source
+            ).resolve()
+
+            repository_relative = (
+                ROOT / source
+            ).resolve()
+
+            canonical = (
+                ROOT / "skills"
+            ).resolve()
+
+            if (
+                manifest_relative != canonical
+                and repository_relative != canonical
+            ):
+                error(
+                    f"adapter {adapter}: "
+                    "skills.source must resolve "
+                    "to the canonical skills directory"
+                )
+
+        discovery = skills.get(
+            "discovery"
+        )
+
+        allowed_discovery = {
+            "native",
+            "instruction-file",
+            "configuration",
+            "filesystem",
+            "manual",
+            "unsupported",
+        }
+
+        if not isinstance(
+            discovery,
+            str,
+        ):
+            error(
+                f"adapter {adapter}: "
+                "skills.discovery must be a string"
+            )
+
+        elif discovery not in allowed_discovery:
+            error(
+                f"adapter {adapter}: "
+                f"unsupported skills.discovery "
+                f"'{discovery}'"
+            )
+
+    # ------------------------------------------------------------------------
+    # Capabilities
+    # ------------------------------------------------------------------------
+
+    capabilities = data.get(
+        "capabilities"
+    )
+
+    if not isinstance(
+        capabilities,
+        dict,
+    ):
+        error(
+            f"adapter {adapter}: "
+            "capabilities must be a mapping"
+        )
+
+    else:
+        allowed_states = {
+            "FULL",
+            "SUITABLE",
+            "CONSTRAINED",
+            "UNSUITABLE",
+            "unknown",
+            "host-dependent",
+            True,
+            False,
+        }
+
+        for capability, value in capabilities.items():
+            if isinstance(value, dict):
+                state = value.get(
+                    "state"
+                )
+
+                if state not in allowed_states:
+                    error(
+                        f"adapter {adapter}: "
+                        f"unsupported capability state "
+                        f"for '{capability}': "
+                        f"{state}"
+                    )
+
+                evidence = value.get(
+                    "evidence"
+                )
+
+                if evidence is not None:
+                    if not isinstance(
+                        evidence,
+                        list,
+                    ):
+                        error(
+                            f"adapter {adapter}: "
+                            f"capabilities.{capability}.evidence "
+                            "must be a list"
+                        )
+
+            elif value not in allowed_states:
+                error(
+                    f"adapter {adapter}: "
+                    f"unsupported capability state "
+                    f"for '{capability}': "
+                    f"{value}"
+                )
+
+    # ------------------------------------------------------------------------
+    # Compatibility
+    # ------------------------------------------------------------------------
+
+    compatibility = data.get(
+        "compatibility"
+    )
+
+    if compatibility is not None:
+        if not isinstance(
+            compatibility,
+            dict,
+        ):
+            error(
+                f"adapter {adapter}: "
+                "compatibility must be a mapping"
+            )
+
+        else:
+            status = compatibility.get(
+                "status"
+            )
+
+            if status is not None:
+                allowed_statuses = {
+                    "verified",
+                    "unverified",
+                    "standard",
+                }
+
+                if status not in allowed_statuses:
+                    error(
+                        f"adapter {adapter}: "
+                        f"unsupported compatibility.status "
+                        f"'{status}'"
+                    )
+
+            evidence = compatibility.get(
+                "evidence"
+            )
+
+            if evidence is not None:
+                if not isinstance(
+                    evidence,
+                    list,
+                ):
+                    error(
+                        f"adapter {adapter}: "
+                        "compatibility.evidence "
+                        "must be a list"
+                    )
+
+                else:
+                    for item in evidence:
+                        if (
+                            not isinstance(
+                                item,
+                                str,
+                            )
+                            or not re.match(
+                                r"^https?://",
+                                item,
+                                re.IGNORECASE,
+                            )
+                        ):
+                            error(
+                                f"adapter {adapter}: "
+                                "compatibility evidence "
+                                "must contain URLs"
+                            )
+
+            if (
+                status == "verified"
+                and not evidence
+            ):
+                error(
+                    f"adapter {adapter}: "
+                    "verified adapter requires "
+                    "compatibility evidence"
+                )
+
+    # ------------------------------------------------------------------------
+    # Limitations
+    # ------------------------------------------------------------------------
+
+    limitations = data.get(
+        "limitations"
+    )
+
+    if limitations is not None:
+        if not isinstance(
+            limitations,
+            list,
+        ):
+            error(
+                f"adapter {adapter}: "
+                "limitations must be a list"
+            )
+
+    # ------------------------------------------------------------------------
+    # Verification
+    # ------------------------------------------------------------------------
+
+    verification = data.get(
+        "verification"
+    )
+
+    if verification is not None:
+        if not isinstance(
+            verification,
+            dict,
+        ):
+            error(
+                f"adapter {adapter}: "
+                "verification must be a mapping"
+            )
+
+        else:
+            for scope in (
+                "project",
+                "global",
+            ):
+                block = verification.get(
+                    scope
+                )
+
+                if block is None:
+                    continue
+
+                if not isinstance(
+                    block,
+                    dict,
+                ):
+                    error(
+                        f"adapter {adapter}: "
+                        f"verification.{scope} "
+                        "must be a mapping"
+                    )
+                    continue
+
+                expected_path = block.get(
+                    "expected_path"
+                )
+
+                if (
+                    not isinstance(
+                        expected_path,
+                        str,
+                    )
+                    or not expected_path.strip()
+                ):
+                    error(
+                        f"adapter {adapter}: "
+                        f"verification.{scope}.expected_path "
+                        "must be a non-empty string"
+                    )
+
+
+# ============================================================================
+# Adapter registry
+# ============================================================================
+
+def validate_adapter_registry():
+    path = (
+        ROOT
+        / "adapters"
+        / "registry.yaml"
+    )
+
+    if not path.is_file():
+        error(
+            "missing adapters/registry.yaml"
+        )
+        return
+
+    try:
+        registry = parse_simple_yaml(
+            read(path)
+        )
+    except ValueError as exc:
+        error(
+            f"adapters/registry.yaml: "
+            f"invalid YAML: {exc}"
+        )
+        return
+
+    text = read(path)
+
+    for adapter in EXPECTED_ADAPTERS:
+        if not re.search(
+            rf"(?m)^\s*-\s*(?:id:\s*)?"
+            rf"{re.escape(adapter)}\s*$",
+            text,
+        ):
+            if not re.search(
+                rf"(?m)^\s*id:\s*"
+                rf"{re.escape(adapter)}\s*$",
+                text,
+            ):
+                error(
+                    f"adapter registry: "
+                    f"missing '{adapter}'"
+                )
+
+    # Registry should not reference a known adapter that has no directory.
+    adapter_dirs = {
+        path.parent.name
+        for path in (
+            ROOT / "adapters"
+        ).glob("*/adapter.yaml")
+    }
+
+    registry_ids = set()
+
+    def collect(value):
+        if isinstance(value, dict):
+            if isinstance(
+                value.get("id"),
+                str,
+            ):
+                registry_ids.add(
+                    value["id"]
+                )
+
+            for child in value.values():
+                collect(child)
+
+        elif isinstance(value, list):
+            for child in value:
+                if isinstance(
+                    child,
+                    str,
+                ):
+                    registry_ids.add(child)
+                else:
+                    collect(child)
+
+    collect(registry)
+
+    for registry_id in registry_ids:
+        if registry_id in {
+            "registry",
+            "adapters",
+        }:
+            continue
+
+        if (
+            registry_id in EXPECTED_ADAPTERS
+            and registry_id not in adapter_dirs
+        ):
+            error(
+                "adapter registry references "
+                f"missing adapter '{registry_id}'"
+            )
+
+
+def validate_adapters():
+    root = ROOT / "adapters"
+
+    if not root.is_dir():
+        error(
+            "missing adapters directory"
+        )
+        return
+
+    discovered = sorted(
+        path.parent.name
+        for path in root.glob(
+            "*/adapter.yaml"
+        )
+    )
+
+    expected = sorted(
+        EXPECTED_ADAPTERS
+    )
 
     if discovered != expected:
         error(
-            "adapter inventory mismatch: "
+            f"adapter inventory mismatch: "
             f"expected {len(expected)}, "
             f"found {len(discovered)}"
         )
 
         missing = sorted(
-            set(expected) - set(discovered)
+            set(expected)
+            - set(discovered)
         )
 
         extra = sorted(
-            set(discovered) - set(expected)
+            set(discovered)
+            - set(expected)
         )
 
         if missing:
             error(
-                f"missing adapters: {', '.join(missing)}"
+                f"missing adapters: "
+                f"{', '.join(missing)}"
             )
 
         if extra:
             error(
-                f"unexpected adapters: {', '.join(extra)}"
+                f"unexpected adapters: "
+                f"{', '.join(extra)}"
             )
 
-    canonical_skills = (
-        ROOT / "skills"
-    ).resolve()
+    validate_adapter_registry()
+
+    collective = (
+        root / "README.md"
+    )
+
+    if (
+        not collective.is_file()
+        or not read(collective).strip()
+    ):
+        error(
+            "missing/empty adapters/README.md"
+        )
 
     for adapter in EXPECTED_ADAPTERS:
-        adapter_root = adapters_root / adapter
-        manifest = adapter_root / "adapter.yaml"
-        readme = adapter_root / "README.md"
+        manifest = (
+            root
+            / adapter
+            / "adapter.yaml"
+        )
 
         if not manifest.is_file():
-            error(f"missing adapter manifest: {adapter}")
+            error(
+                f"missing adapter manifest: "
+                f"{adapter}"
+            )
             continue
 
-        content = read(manifest)
-        lines = content.splitlines()
+        validate_adapter_manifest(
+            adapter,
+            manifest,
+        )
 
-        # ---------------------------------------------------------------
-        # Required top-level manifest fields
-        # ---------------------------------------------------------------
+        individual_readme = (
+            root
+            / adapter
+            / "README.md"
+        )
 
-        required_keys = [
-            "adapter_version:",
-            "target:",
-            "skill_source:",
-            "installation:",
-            "claims:",
-        ]
-
-        for key in required_keys:
-            if not any(
-                line.strip().startswith(key)
-                for line in lines
-            ):
-                error(
-                    f"adapter {adapter}: missing {key}"
-                )
-
-        # ---------------------------------------------------------------
-        # Adapter target
-        # ---------------------------------------------------------------
-
-        target = None
-
-        for line in lines:
-            stripped = line.strip()
-
-            if stripped.startswith("target:"):
-                target = stripped.split(":", 1)[1].strip()
-                target = target.strip("\"'")
-                break
-
-        if target is not None and target != adapter:
-            error(
-                f"adapter {adapter}: target mismatch "
-                f"(declared '{target}')"
-            )
-
-        # ---------------------------------------------------------------
-        # Adapter version
-        # ---------------------------------------------------------------
-
-        adapter_version = None
-
-        for line in lines:
-            stripped = line.strip()
-
-            if stripped.startswith("adapter_version:"):
-                adapter_version = (
-                    stripped.split(":", 1)[1]
-                    .strip()
-                    .strip("\"'")
-                )
-                break
-
-        if adapter_version is not None:
-            if not re.fullmatch(
-                r"[0-9]+\.[0-9]+\.[0-9]+",
-                adapter_version,
-            ):
-                error(
-                    f"adapter {adapter}: invalid adapter_version "
-                    f"'{adapter_version}'"
-                )
-
-        # ---------------------------------------------------------------
-        # Claims / verification
-        #
-        # Expected structure:
-        #
-        # claims:
-        #   verified: true
-        #   verification_scope: ...
-        #   source: https://...
-        #
-        # We intentionally parse this structurally instead of using a
-        # regex containing \\s*, because \\s can consume newlines and
-        # produce misleading matches in multiline YAML.
-        # ---------------------------------------------------------------
-
-        claims_start = None
-        claims_indent = None
-
-        for index, line in enumerate(lines):
-            if not line.strip():
-                continue
-
-            stripped = line.strip()
-
-            if stripped == "claims:":
-                claims_start = index
-
-                leading_spaces = len(line) - len(line.lstrip(" "))
-                claims_indent = leading_spaces
-
-                break
-
-        if claims_start is not None:
-            verified = None
-            source = None
-
-            for line in lines[claims_start + 1:]:
-                if not line.strip():
-                    continue
-
-                leading_spaces = len(line) - len(line.lstrip(" "))
-
-                # A non-indented line means the claims block has ended.
-                if leading_spaces <= claims_indent:
-                    break
-
-                stripped = line.strip()
-
-                if stripped.startswith("verified:"):
-                    value = stripped.split(":", 1)[1].strip()
-                    value = value.strip("\"'")
-
-                    verified = value.lower() == "true"
-
-                elif stripped.startswith("source:"):
-                    value = stripped.split(":", 1)[1].strip()
-                    source = value.strip("\"'")
-
-            if verified is True:
-                if not source:
-                    error(
-                        f"adapter {adapter}: "
-                        "verified=true requires documented source"
-                    )
-                elif not re.match(
-                    r"^https?://",
-                    source,
-                    re.IGNORECASE,
-                ):
-                    error(
-                        f"adapter {adapter}: "
-                        "verification source must be a URL"
-                    )
-
-        # ---------------------------------------------------------------
-        # Canonical skill source
-        # ---------------------------------------------------------------
-
-        skill_source = None
-
-        for line in lines:
-            stripped = line.strip()
-
-            if stripped.startswith("skill_source:"):
-                skill_source = (
-                    stripped.split(":", 1)[1]
-                    .strip()
-                    .strip("\"'")
-                )
-                break
-
-        if skill_source:
-            source_path = (
-                manifest.parent / skill_source
-            ).resolve()
-
-            if source_path != canonical_skills:
-                error(
-                    f"adapter {adapter}: skill_source does not resolve "
-                    f"to canonical skills directory "
-                    f"('{skill_source}' -> "
-                    f"'{source_path}')"
-                )
-
-        # ---------------------------------------------------------------
-        # Adapter README
-        # ---------------------------------------------------------------
-
-        if not readme.is_file() or not read(readme).strip():
-            error(
-                f"missing/empty adapter README: {adapter}"
+        if individual_readme.exists():
+            warning(
+                f"adapter {adapter}: "
+                "individual README.md exists; "
+                "documentation should remain collective"
             )
 
 
-# ---------------------------------------------------------------------------
-# Integrations
-# ---------------------------------------------------------------------------
+# ============================================================================
+# Integration validation
+# ============================================================================
 
-def validate_integrations():
-    registry_path = ROOT / "integrations" / "registry.yaml"
-
-    if not registry_path.is_file():
-        error("missing integrations/registry.yaml")
+def validate_integration_file(
+    path,
+    expected_id,
+    kind,
+):
+    if not path.is_file():
         return
 
-    registry = read(registry_path)
-
-    plugins_root = ROOT / "integrations" / "plugins"
-    connectors_root = ROOT / "integrations" / "connectors"
-
-    plugin_files = sorted(
-        path.stem
-        for path in plugins_root.glob("*.yaml")
-    )
-
-    connector_files = sorted(
-        path.stem
-        for path in connectors_root.glob("*.yaml")
-    )
-
-    if plugin_files != sorted(EXPECTED_PLUGINS):
+    try:
+        data = parse_simple_yaml(
+            read(path)
+        )
+    except ValueError as exc:
         error(
-            "plugin inventory mismatch: "
-            f"expected {len(EXPECTED_PLUGINS)}, "
+            f"{kind} {expected_id}: "
+            f"invalid YAML: {exc}"
+        )
+        return
+
+    if not isinstance(
+        data,
+        dict,
+    ):
+        error(
+            f"{kind} {expected_id}: "
+            "manifest must be a mapping"
+        )
+        return
+
+    if data.get("id") != expected_id:
+        error(
+            f"{kind} {expected_id}: "
+            f"id mismatch "
+            f"(declared '{data.get('id')}')"
+        )
+
+    if data.get("version") != "0.1.0":
+        error(
+            f"{kind} {expected_id}: "
+            "version must be 0.1.0 "
+            f"(found '{data.get('version')}')"
+        )
+
+
+def validate_integrations():
+    root = ROOT / "integrations"
+
+    registry_path = (
+        root / "registry.yaml"
+    )
+
+    if not registry_path.is_file():
+        error(
+            "missing integrations/registry.yaml"
+        )
+        return
+
+    try:
+        registry = parse_simple_yaml(
+            read(registry_path)
+        )
+    except ValueError as exc:
+        error(
+            f"integrations/registry.yaml: "
+            f"invalid YAML: {exc}"
+        )
+        return
+
+    if not isinstance(
+        registry,
+        dict,
+    ):
+        error(
+            "integrations/registry.yaml "
+            "must be a mapping"
+        )
+
+    elif registry.get("version") != "0.1.0":
+        error(
+            "integrations registry must "
+            "declare version 0.1.0"
+        )
+
+    plugins_root = (
+        root / "plugins"
+    )
+
+    connectors_root = (
+        root / "connectors"
+    )
+
+    if not plugins_root.is_dir():
+        error(
+            "missing integrations/plugins directory"
+        )
+        plugin_files = []
+    else:
+        plugin_files = sorted(
+            p.stem
+            for p in plugins_root.glob(
+                "*.yaml"
+            )
+        )
+
+    if not connectors_root.is_dir():
+        error(
+            "missing integrations/connectors directory"
+        )
+        connector_files = []
+    else:
+        connector_files = sorted(
+            p.stem
+            for p in connectors_root.glob(
+                "*.yaml"
+            )
+        )
+
+    expected_plugins = sorted(
+        EXPECTED_PLUGINS
+    )
+
+    expected_connectors = sorted(
+        EXPECTED_CONNECTORS
+    )
+
+    if plugin_files != expected_plugins:
+        error(
+            f"plugin inventory mismatch: "
+            f"expected {len(expected_plugins)}, "
             f"found {len(plugin_files)}"
         )
 
         missing = sorted(
-            set(EXPECTED_PLUGINS) - set(plugin_files)
+            set(expected_plugins)
+            - set(plugin_files)
         )
 
         extra = sorted(
-            set(plugin_files) - set(EXPECTED_PLUGINS)
+            set(plugin_files)
+            - set(expected_plugins)
         )
 
         if missing:
             error(
-                f"missing plugins: {', '.join(missing)}"
+                f"missing plugins: "
+                f"{', '.join(missing)}"
             )
 
         if extra:
             error(
-                f"unexpected plugins: {', '.join(extra)}"
+                f"unexpected plugins: "
+                f"{', '.join(extra)}"
             )
 
-    if connector_files != sorted(EXPECTED_CONNECTORS):
+    if connector_files != expected_connectors:
         error(
-            "connector inventory mismatch: "
-            f"expected {len(EXPECTED_CONNECTORS)}, "
+            f"connector inventory mismatch: "
+            f"expected {len(expected_connectors)}, "
             f"found {len(connector_files)}"
         )
 
         missing = sorted(
-            set(EXPECTED_CONNECTORS) - set(connector_files)
+            set(expected_connectors)
+            - set(connector_files)
         )
 
         extra = sorted(
-            set(connector_files) - set(EXPECTED_CONNECTORS)
+            set(connector_files)
+            - set(expected_connectors)
         )
 
         if missing:
             error(
-                f"missing connectors: {', '.join(missing)}"
+                f"missing connectors: "
+                f"{', '.join(missing)}"
             )
 
         if extra:
             error(
-                f"unexpected connectors: {', '.join(extra)}"
+                f"unexpected connectors: "
+                f"{', '.join(extra)}"
             )
 
-    for directory, expected in (
-        ("plugins", EXPECTED_PLUGINS),
-        ("connectors", EXPECTED_CONNECTORS),
-    ):
-        root = ROOT / "integrations" / directory
-
-        for name in expected:
-            path = root / f"{name}.yaml"
-
-            if not path.is_file():
-                continue
-
-            content = read(path)
-
-            for key in (
-                "version:",
-                "kind:",
-                "id:",
-                "description:",
-            ):
-                if key not in content:
-                    error(
-                        f"integration {directory}/{name}: "
-                        f"missing {key}"
-                    )
-
-            if not re.search(
-                rf"^id:\s*{re.escape(name)}\s*$",
-                content,
-                re.MULTILINE,
-            ):
-                error(
-                    f"integration {directory}/{name}: "
-                    "id does not match filename"
-                )
-
-    # Plugin-to-connector dependency validation.
-    expected_plugin_connectors = {
-        "browser": {"browser-session"},
-        "database": {"postgresql"},
-        "filesystem": {"local-filesystem"},
-        "git": {"git-repository"},
-        "github": {"github-api"},
-        "http": {"http-client"},
-        "mcp": {"mcp-server"},
-        "package-manager": {"npm-registry"},
-        "shell": {"shell-runtime"},
-        "test-runner": {"shell-runtime"},
-        "container": set(),
-        "image-inspection": set(),
-    }
-
-    known_connectors = set(EXPECTED_CONNECTORS)
-
-    for plugin, expected_connectors in expected_plugin_connectors.items():
-        path = plugins_root / f"{plugin}.yaml"
-
-        if not path.is_file():
-            continue
-
-        content = read(path)
-
-        requires_match = re.search(
-            r"(?ms)^requires:\s*\n\s+connectors:\s*\n"
-            r"(?P<body>(?:\s+-\s+[a-z0-9][a-z0-9-]*\s*\n?)+)",
-            content,
+    for plugin in EXPECTED_PLUGINS:
+        validate_integration_file(
+            plugins_root / f"{plugin}.yaml",
+            plugin,
+            "plugin",
         )
 
-        if requires_match:
-            declared_connectors = set(
-                re.findall(
-                    r"^\s+-\s+([a-z0-9][a-z0-9-]*)\s*$",
-                    requires_match.group("body"),
-                    re.MULTILINE,
-                )
-            )
-        else:
-            declared_connectors = set()
-
-        unknown = declared_connectors - known_connectors
-
-        if unknown:
-            error(
-                f"integration plugins/{plugin}: "
-                f"unknown connector(s): {', '.join(sorted(unknown))}"
-            )
-
-        if declared_connectors != expected_connectors:
-            expected = ", ".join(sorted(expected_connectors)) or "none"
-            declared = ", ".join(sorted(declared_connectors)) or "none"
-
-            error(
-                f"integration plugins/{plugin}: "
-                f"connector dependency mismatch; "
-                f"expected {expected}, declared {declared}"
-            )
-
-    # Registry must mention every declared artifact.
-    registry_lower = registry.lower()
-
-    for name in EXPECTED_PLUGINS + EXPECTED_CONNECTORS:
-        if not re.search(
-            rf"\b{re.escape(name)}\b",
-            registry_lower,
-        ):
-            error(
-                f"integrations registry missing artifact: {name}"
-            )
-
-
-# ---------------------------------------------------------------------------
-# Skill registry
-# ---------------------------------------------------------------------------
-
-def validate_skill_registry():
-    path = ROOT / "core" / "registries" / "skill-registry.yaml"
-
-    if not path.is_file():
-        error("missing skill registry")
-        return
-
-    content = read(path)
-
-    for skill in EXPECTED_SKILLS:
-        if not re.search(
-            rf"\b{re.escape(skill)}\b",
-            content,
-        ):
-            error(
-                f"skill registry missing skill: {skill}"
-            )
-
-    if re.search(
-        r"\bfly-by-animation\b",
-        content,
-        re.IGNORECASE,
-    ):
-        error(
-            "skill registry contains obsolete "
-            "fly-by-animation skill"
+    for connector in EXPECTED_CONNECTORS:
+        validate_integration_file(
+            connectors_root / f"{connector}.yaml",
+            connector,
+            "connector",
         )
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Tests
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 def validate_tests():
     for relative in REQUIRED_TEST_FILES:
@@ -1155,60 +2069,15 @@ def validate_tests():
             error(
                 f"missing test file: {relative}"
             )
-            continue
-
-        if not read(path).strip():
+        elif not read(path).strip():
             error(
                 f"empty test file: {relative}"
             )
 
-    checks = {
-        "tests/core/cases.md": [
-            "discovery",
-            "capability",
-            "interaction",
-            "challenge",
-            "execution",
-            "verification",
-            "reporting",
-        ],
 
-        "tests/skills/cases.md": [
-            "ui/ux",
-            "animation",
-            "3d",
-            "seo",
-            "security",
-            "reviewer",
-        ],
-
-        "tests/challenge/cases.md": [
-            "user authority",
-            "technical tradeoffs",
-            "security",
-            "scope",
-        ],
-    }
-
-    for relative, required_terms in checks.items():
-        path = ROOT / relative
-
-        if not path.is_file():
-            continue
-
-        content = read(path).lower()
-
-        for term in required_terms:
-            if term.lower() not in content:
-                error(
-                    f"{relative}: missing behavioral coverage "
-                    f"for '{term}'"
-                )
-
-
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Package
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 def validate_package():
     path = ROOT / "package.json"
@@ -1217,70 +2086,133 @@ def validate_package():
         return
 
     try:
-        package = json.loads(read(path))
+        package = json.loads(
+            read(path)
+        )
     except json.JSONDecodeError as exc:
         error(
-            f"package.json: invalid JSON: {exc}"
+            f"package.json: "
+            f"invalid JSON: {exc}"
         )
         return
 
-    if not package.get("name"):
+    if package.get("name") != "nexra":
         error(
-            "package.json: missing package name"
+            "package.json: "
+            f"expected name 'nexra', "
+            f"found '{package.get('name')}'"
         )
 
-    if not re.fullmatch(
-        r"[0-9]+\.[0-9]+\.[0-9]+",
-        str(package.get("version", "")),
+    if package.get("version") != "0.1.0":
+        error(
+            "package.json: "
+            f"expected version '0.1.0', "
+            f"found '{package.get('version')}'"
+        )
+
+    bin_config = package.get(
+        "bin",
+        {},
+    )
+
+    if (
+        not isinstance(
+            bin_config,
+            dict,
+        )
+        or bin_config.get("nexra")
+        != "cli/bin/nexra.js"
     ):
         error(
-            "package.json: version must use semantic version format"
+            "package.json: "
+            "nexra bin entry is incorrect"
         )
 
-    expected_bin = "cli/bin/the-builder.js"
+    repository = package.get(
+        "repository",
+        {},
+    )
 
-    if package.get("bin", {}).get("the-builder") != expected_bin:
-        error(
-            "package.json: CLI bin mapping is incorrect"
+    expected_repo = (
+        "https://github.com/"
+        "Muhammad-Wasif-Qamar/Nexra.git"
+    )
+
+    if (
+        not isinstance(
+            repository,
+            dict,
         )
-
-    cli = ROOT / expected_bin
-
-    if not cli.is_file():
-        error(
-            "package.json: CLI target does not exist: "
-            f"{expected_bin}"
-        )
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-def validate_cli():
-    cli = ROOT / "cli" / "bin" / "the-builder.js"
-
-    if not cli.is_file():
-        error("missing CLI entrypoint")
-        return
-
-    content = read(cli)
-    lower = content.lower()
-
-    for command in (
-        "install",
-        "doctor",
-        "test",
+        or repository.get("url")
+        != expected_repo
     ):
-        if command not in lower:
-            error(
-                f"CLI: expected command reference missing: {command}"
-            )
+        error(
+            "package.json: "
+            "repository URL is incorrect"
+        )
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
+# Project naming
+# ============================================================================
+
+def validate_naming():
+    """
+    Ensure the current project identity is Nexra.
+
+    CHANGELOG.md legitimately contains historical references to the previous
+    project identity.
+
+    This script is also excluded because its validator logic necessarily
+    contains the legacy-token patterns it is checking for.
+    """
+
+    excluded = {
+        "CHANGELOG.md",
+        "scripts/validate.py",
+    }
+
+    legacy_fragments = [
+        ".the-builder",
+        "the-builder",
+        "The-Builder",
+        "THE-BUILDER",
+        "@wasif-qamar/the-builder",
+    ]
+
+    for path in ROOT.rglob("*"):
+        if ".git" in path.parts:
+            continue
+
+        if not path.is_file():
+            continue
+
+        relative = path.relative_to(
+            ROOT
+        ).as_posix()
+
+        if relative in excluded:
+            continue
+
+        try:
+            content = read(path)
+        except (
+            UnicodeDecodeError,
+            OSError,
+        ):
+            continue
+
+        for token in legacy_fragments:
+            if token in content:
+                error(
+                    "obsolete project identity found in "
+                    f"{relative}: {token}"
+                )
+
+
+# ============================================================================
 # Main
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 def main():
     validate_repository_files()
@@ -1289,31 +2221,31 @@ def main():
     validate_markdown()
     validate_adapters()
     validate_integrations()
-    validate_skill_registry()
     validate_tests()
     validate_package()
-    validate_cli()
+    validate_naming()
 
-    if WARNINGS:
+    for message in WARNINGS:
         print(
-            f"WARN: {len(WARNINGS)} warning(s)"
+            "WARN:",
+            message,
         )
-
-        for message in WARNINGS:
-            print(f" - {message}")
 
     if ERRORS:
         print(
-            f"FAIL: {len(ERRORS)} validation error(s)"
+            f"FAIL: {len(ERRORS)} error(s)"
         )
 
         for message in ERRORS:
-            print(f" - {message}")
+            print(
+                " -",
+                message,
+            )
 
         sys.exit(1)
 
-    print("PASS: repository validation")
     print(
+        "PASS: repository validation\n"
         f"skills={len(EXPECTED_SKILLS)} "
         f"foundation={len(FOUNDATION_SKILLS)} "
         f"adapters={len(EXPECTED_ADAPTERS)} "

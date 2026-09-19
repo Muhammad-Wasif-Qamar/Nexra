@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-The Verification Contract defines how The-Builder determines whether implemented work actually satisfies its intended outcome.
+The Verification Contract defines how Nexra determines whether implemented work actually satisfies its intended outcome.
 
 Verification is not the same as execution.
 
@@ -904,7 +904,7 @@ into:
 completed and verified
 ```
 
-This distinction is fundamental to The-Builder.
+This distinction is fundamental to Nexra.
 
 ---
 

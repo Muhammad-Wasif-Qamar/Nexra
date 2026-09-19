@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-The Reporting Contract defines how The-Builder communicates the result of its work to the user.
+The Reporting Contract defines how Nexra communicates the result of its work to the user.
 
 A report is not a transcript of everything the agent did.
 
@@ -647,7 +647,7 @@ Commit:
 
 If no commit was created, do not imply one exists.
 
-The-Builder should not create commits merely because implementation finished unless the workflow explicitly authorizes it.
+Nexra should not create commits merely because implementation finished unless the workflow explicitly authorizes it.
 
 ---
 

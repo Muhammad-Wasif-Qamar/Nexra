@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Purpose
 
-Interaction defines how The-Builder communicates with the user while completing a task.
+Interaction defines how Nexra communicates with the user while completing a task.
 
 The objective is not to maximize conversation.
 

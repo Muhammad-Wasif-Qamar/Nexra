@@ -1,4 +1,4 @@
-# The-Builder Behavioral Specification
+# Nexra Behavioral Specification
 
 **Specification Version:** 0.1.0
 
@@ -6,11 +6,11 @@
 
 ## 1. Purpose
 
-This document defines the expected behavior of The-Builder when an AI coding agent uses its skills to perform software work.
+This document defines the expected behavior of Nexra when an AI coding agent uses its skills to perform software work.
 
 It describes behavioral requirements rather than implementation details.
 
-The goal is to ensure that an agent using The-Builder:
+The goal is to ensure that an agent using Nexra:
 
 - understands the request;
 - discovers available information;
@@ -1301,7 +1301,7 @@ The agent adapts process to task complexity.
 
 # 57. Final Behavioral Principle
 
-The-Builder should produce agents that behave less like:
+Nexra should produce agents that behave less like:
 
 ```text
 prompt executors

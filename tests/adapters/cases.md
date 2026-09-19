@@ -6,7 +6,7 @@
 
 ## Purpose
 
-These tests verify that The-Builder adapters correctly translate the canonical skill system into agent-specific installation and execution conventions.
+These tests verify that Nexra adapters correctly translate the canonical skill system into agent-specific installation and execution conventions.
 
 Adapters are compatibility layers.
 
@@ -45,7 +45,7 @@ openhands
 roo
 ```
 
-Every adapter should describe how The-Builder is exposed to its target environment.
+Every adapter should describe how Nexra is exposed to its target environment.
 
 ---
 
@@ -269,7 +269,7 @@ The user already has an agent configuration file containing unrelated settings.
 
 ### Request
 
-> Install The-Builder.
+> Install Nexra.
 
 ### Expected Behavior
 
@@ -295,23 +295,23 @@ custom-skill/
 
 ### Request
 
-> Install The-Builder.
+> Install Nexra.
 
 ### Expected Behavior
 
-The adapter should install The-Builder skills without deleting unrelated user skills.
+The adapter should install Nexra skills without deleting unrelated user skills.
 
 ---
 
-## Case AD-11 — Existing The-Builder Installation
+## Case AD-11 — Existing Nexra Installation
 
 ### Context
 
-The target already contains an earlier The-Builder installation.
+The target already contains an earlier Nexra installation.
 
 ### Request
 
-> Install The-Builder again.
+> Install Nexra again.
 
 ### Expected Behavior
 
@@ -397,7 +397,7 @@ No dedicated adapter exists for the user's coding agent.
 
 ### Request
 
-> Install The-Builder for my agent.
+> Install Nexra for my agent.
 
 ### Expected Behavior
 
@@ -411,7 +411,7 @@ It should preserve canonical skills without requiring a provider-specific integr
 
 ### Context
 
-The user is using an agent that The-Builder does not explicitly recognize.
+The user is using an agent that Nexra does not explicitly recognize.
 
 ### Expected Behavior
 
@@ -557,7 +557,7 @@ Do not install a second independent canonical skill.
 
 ### Context
 
-The user installs The-Builder into a project.
+The user installs Nexra into a project.
 
 ### Expected Behavior
 
@@ -593,7 +593,7 @@ The target directory contains a user-created file with a name that could conflic
 
 ### Expected Behavior
 
-The installer should avoid destructive replacement unless the file is clearly managed by The-Builder.
+The installer should avoid destructive replacement unless the file is clearly managed by Nexra.
 
 ---
 
@@ -605,7 +605,7 @@ The installation creates a manifest identifying managed files.
 
 ### Expected Behavior
 
-The manifest should contain enough information to distinguish The-Builder-managed files from unrelated user files.
+The manifest should contain enough information to distinguish Nexra-managed files from unrelated user files.
 
 ---
 
@@ -997,11 +997,11 @@ The adapter suite is sufficiently complete when:
 
 An adapter answers:
 
-> How does this agent consume The-Builder?
+> How does this agent consume Nexra?
 
 It must not redefine:
 
-> What should The-Builder teach the agent?
+> What should Nexra teach the agent?
 
 The first belongs to adapters.
 

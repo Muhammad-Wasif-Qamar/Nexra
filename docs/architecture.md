@@ -1,8 +1,8 @@
-# The-Builder Architecture
+# Nexra Architecture
 
 ## 1. Overview
 
-The-Builder is a portable skill system for AI coding agents.
+Nexra is a portable skill system for AI coding agents.
 
 Its architecture separates:
 
@@ -31,7 +31,7 @@ The same skill should be usable across multiple agent environments whenever the 
 The repository is organized into several conceptual layers:
 
 ```text
-The-Builder/
+Nexra/
 │
 ├── skills/              Canonical installable skills
 │
@@ -124,7 +124,7 @@ Reporting
 → communicate the result and limitations
 ```
 
-These skills form the behavioral foundation of The-Builder.
+These skills form the behavioral foundation of Nexra.
 
 ---
 
@@ -800,7 +800,7 @@ project/
 ├── .opencode/
 ├── .gemini/
 ├── .agents/
-└── .the-builder/
+└── .nexra/
 ```
 
 Only the directories appropriate to detected or explicitly selected targets should be used.
@@ -809,11 +809,11 @@ Only the directories appropriate to detected or explicitly selected targets shou
 
 # 32. Installation Manifest
 
-The `.the-builder/manifest.json` file records installation state.
+The `.nexra/manifest.json` file records installation state.
 
 It can describe:
 
-- The-Builder version;
+- Nexra version;
 - installed skills;
 - adapters;
 - target environments;
@@ -1270,7 +1270,7 @@ The architecture is functioning correctly when:
 
 # 51. Architectural Principle
 
-The-Builder should be understood as:
+Nexra should be understood as:
 
 ```text
 A portable methodology layer
@@ -1308,4 +1308,4 @@ This separation allows the same reasoning methodology to survive changes in:
 - MCP servers;
 - project environments.
 
-That portability is a fundamental property of The-Builder.
+That portability is a fundamental property of Nexra.

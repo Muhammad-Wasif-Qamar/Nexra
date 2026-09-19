@@ -1,17 +1,45 @@
-adapter_version: 0.5.0
-target: kiro
-skill_source: ../../skills
+id: kiro
+name: Kiro
+
+adapter:
+  schema_version: "1.0"
+  version: "0.1.0"
+  platform: kiro
+
+detection:
+  commands:
+    - kiro
+    - kiro-cli
+
 installation:
-  mode: native-skill-directory
-  project: .kiro/skills
-  global: ~/.kiro/skills
-  source: The-Builder repository
-claims:
-  verified: true
-  verification_scope: documented-skill-discovery
-  source: https://kiro.dev/docs/skills/
-capability_notes:
-  filesystem: host-dependent
-  terminal: host-dependent
-  browser: host-dependent
-  mcp: host-dependent
+  project:
+    supported: true
+    target: ".kiro/skills/"
+  global:
+    supported: true
+    target: "~/.kiro/skills/"
+  strategy: native-skill-directory
+
+skills:
+  source: "skills/"
+  discovery: native
+
+capabilities:
+  discovery: true
+  filesystem: unknown
+  terminal: unknown
+  browser: unknown
+  mcp: unknown
+
+compatibility:
+  status: verified
+  evidence:
+    - "https://kiro.dev/docs/skills/"
+  notes:
+    - "Kiro documents workspace and global Agent Skills locations."
+
+verification:
+  project:
+    expected_path: ".kiro/skills/"
+  global:
+    expected_path: "~/.kiro/skills/"

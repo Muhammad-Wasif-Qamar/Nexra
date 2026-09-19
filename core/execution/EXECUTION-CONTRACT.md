@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-The Execution Contract defines the boundaries and expected behavior for implementation work performed by The-Builder.
+The Execution Contract defines the boundaries and expected behavior for implementation work performed by Nexra.
 
 It converts an agreed task into controlled repository changes.
 

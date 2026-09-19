@@ -1,4 +1,4 @@
-# Testing The-Builder
+# Testing Nexra
 
 **Testing Specification:** 0.1.0
 
@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-The-Builder is not only a collection of Markdown files.
+Nexra is not only a collection of Markdown files.
 
 It is a behavioral system.
 
@@ -23,7 +23,7 @@ A repository can pass structural validation while still teaching poor behavior.
 
 The primary question is:
 
-> Does The-Builder cause an agent to behave correctly under different task conditions?
+> Does Nexra cause an agent to behave correctly under different task conditions?
 
 Tests should therefore focus on observable behavior.
 
@@ -646,7 +646,7 @@ The exact wording is not important.
 
 # 34. Regression Tests
 
-Every important bug discovered in The-Builder should become a regression test when practical.
+Every important bug discovered in Nexra should become a regression test when practical.
 
 Example:
 
@@ -890,7 +890,7 @@ project discovery behavior
 
 # 49. Multiple Test Runners
 
-If The-Builder exposes multiple test entry points, they should agree on the same repository state.
+If Nexra exposes multiple test entry points, they should agree on the same repository state.
 
 For example:
 
@@ -901,7 +901,7 @@ python3 scripts/test_suite.py
 and:
 
 ```bash
-node cli/bin/the-builder.js test
+node cli/bin/nexra.js test
 ```
 
 should not silently validate different definitions of correctness.
@@ -968,7 +968,7 @@ CI should run at minimum:
 ```bash
 python3 scripts/validate.py
 python3 scripts/test_suite.py
-node cli/bin/the-builder.js test
+node cli/bin/nexra.js test
 ```
 
 when those commands are supported by the project.
@@ -1009,7 +1009,7 @@ Search for stale command references after CLI changes.
 Example:
 
 ```bash
-grep -RIn --exclude-dir=.git 'npx the-builder' .
+grep -RIn --exclude-dir=.git 'npx nexra' .
 ```
 
 If the package is scoped, documentation should use the current scoped package command.
@@ -1399,7 +1399,7 @@ Testing is sufficiently complete for a change when:
 
 # 77. Final Testing Model
 
-The-Builder testing model is:
+Nexra testing model is:
 
 ```text
                 TEST THE SYSTEM
@@ -1425,4 +1425,4 @@ The purpose of this model is to prevent a common failure:
 
 > A repository can be technically valid while teaching the wrong behavior.
 
-The-Builder must therefore be tested both as **software** and as a **behavioral methodology**.
+Nexra must therefore be tested both as **software** and as a **behavioral methodology**.

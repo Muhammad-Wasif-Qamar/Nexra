@@ -1,6 +1,6 @@
 # Skill Behavioral Test Cases
 
-This document defines behavioral expectations for the canonical skills in The-Builder.
+This document defines behavioral expectations for the canonical skills in Nexra.
 
 These are not exact-output tests. An implementation passes when it demonstrates the required behavior, reasoning discipline, capability honesty, user control, execution discipline, and verification behavior.
 

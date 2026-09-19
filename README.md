@@ -1,16 +1,16 @@
-# The-Builder
+# Nexra
 
 > **A capability-aware, user-driven skill system for AI coding agents.**
 
-The-Builder is a portable library of procedural skills for coding agents. It teaches an agent a complete working loop:
+Nexra is a portable library of procedural skills for coding agents. It teaches an agent a complete working loop:
 
 **discover → assess capability → understand intent → challenge material problems → plan → execute → verify → report → iterate**
 
 It is deliberately **agent-agnostic**. The canonical methodology lives in `skills/`; provider-specific installation and host behavior lives in `adapters/`.
 
-![The-Builder workflow](assets/the-builder.svg)
+![Nexra workflow](assets/nexra.svg)
 
-## Why The-Builder exists
+## Why Nexra exists
 
 A coding agent can have terminal access, a large context window, and still fail a task because it:
 
@@ -22,7 +22,7 @@ A coding agent can have terminal access, a large context window, and still fail 
 - optimizes for its preferred stack rather than the user's goal;
 - reports "done" without evidence.
 
-The-Builder turns those failure modes into explicit behavioral contracts.
+Nexra turns those failure modes into explicit behavioral contracts.
 
 ## Design principles
 
@@ -40,7 +40,7 @@ The-Builder turns those failure modes into explicit behavioral contracts.
 ## Repository layout
 
 ```text
-The-Builder/
+Nexra/
 ├── skills/                  # Canonical installable skills
 │   ├── project-discovery/
 │   ├── capability-assessment/
@@ -99,7 +99,7 @@ The-Builder/
 The recommended distribution is the npm CLI. No clone is required.
 
 ```bash
-npx @wasif-qamar/the-builder
+npx nexra
 ```
 
 The wizard detects the current OS/runtime and supported coding-agent executables, then asks whether to install **for the current project** or **globally for the current user**. It can install all canonical skills or a selected subset.
@@ -107,13 +107,13 @@ The wizard detects the current OS/runtime and supported coding-agent executables
 Non-interactive forms are available for automation:
 
 ```bash
-npx @wasif-qamar/the-builder install --project --all
-npx @wasif-qamar/the-builder install --global --all
-npx @wasif-qamar/the-builder detect
-npx @wasif-qamar/the-builder doctor
+npx nexra install --project --all
+npx nexra install --global --all
+npx nexra detect
+npx nexra doctor
 ```
 
-Project installation creates `.the-builder/skills/` and an installation manifest in the current project. Global installation creates `~/.the-builder/skills/` and a global manifest. Existing host configuration is not guessed or overwritten: detected agents are recorded so the appropriate adapter can be applied explicitly when a host requires provider-specific discovery/configuration.
+Project installation creates `.nexra/skills/` and an installation manifest in the current project. Global installation creates `~/.nexra/skills/` and a global manifest. Existing host configuration is not guessed or overwritten: detected agents are recorded so the appropriate adapter can be applied explicitly when a host requires provider-specific discovery/configuration.
 
 The canonical installable unit remains `skills/<name>/SKILL.md`. Adapters describe host-specific conventions; they do not duplicate the canonical methodology.
 
@@ -144,8 +144,8 @@ python3 scripts/validate.py
 python3 scripts/test_suite.py
 npm run validate
 npm test
-node cli/bin/the-builder.js list
-node cli/bin/the-builder.js doctor
+node cli/bin/nexra.js list
+node cli/bin/nexra.js doctor
 ```
 
 The validator checks front matter, required behavioral sections, Markdown fences, skill naming, duplicate/conflicting skill directories, adapter contracts, integration manifests, links, and repository invariants. The test suite checks behavioral/contract fixtures and CLI smoke behavior.

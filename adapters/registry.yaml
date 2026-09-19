@@ -1,0 +1,52 @@
+schema_version: 1
+version: 0.1.0
+type: adapter-registry
+
+adapters:
+  - id: antigravity
+    name: Google Antigravity
+    manifest: antigravity/adapter.yaml
+
+  - id: claude-code
+    name: Claude Code
+    manifest: claude-code/adapter.yaml
+
+  - id: cline
+    name: Cline
+    manifest: cline/adapter.yaml
+
+  - id: codex
+    name: Codex
+    manifest: codex/adapter.yaml
+
+  - id: cursor
+    name: Cursor
+    manifest: cursor/adapter.yaml
+
+  - id: gemini
+    name: Gemini CLI
+    manifest: gemini/adapter.yaml
+
+  - id: generic
+    name: Generic Agent Skills
+    manifest: generic/adapter.yaml
+
+  - id: github-copilot
+    name: GitHub Copilot CLI
+    manifest: github-copilot/adapter.yaml
+
+  - id: kiro
+    name: Kiro
+    manifest: kiro/adapter.yaml
+
+  - id: opencode
+    name: OpenCode
+    manifest: opencode/adapter.yaml
+
+  - id: openhands
+    name: OpenHands
+    manifest: openhands/adapter.yaml
+
+  - id: roo
+    name: Roo
+    manifest: roo/adapter.yaml

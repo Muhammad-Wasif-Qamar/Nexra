@@ -1,17 +1,44 @@
-adapter_version: 0.5.0
-target: github-copilot
-skill_source: ../../skills
+id: github-copilot
+name: GitHub Copilot CLI
+
+adapter:
+  schema_version: "1.0"
+  version: "0.1.0"
+  platform: github-copilot
+
+detection:
+  commands:
+    - copilot
+
 installation:
-  mode: native-skill-directory
-  project: .github/skills
-  global: ~/.copilot/skills
-  source: The-Builder repository
-claims:
-  verified: true
-  verification_scope: documented-skill-discovery
-  source: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills
-capability_notes:
-  filesystem: host-dependent
-  terminal: host-dependent
-  browser: host-dependent
-  mcp: host-dependent
+  project:
+    supported: true
+    target: ".github/skills/"
+  global:
+    supported: true
+    target: "~/.copilot/skills/"
+  strategy: native-skill-directory
+
+skills:
+  source: "skills/"
+  discovery: native
+
+capabilities:
+  discovery: true
+  filesystem: unknown
+  terminal: unknown
+  browser: unknown
+  mcp: unknown
+
+compatibility:
+  status: verified
+  evidence:
+    - "https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills"
+  notes:
+    - "Copilot CLI documents project .github/skills and personal ~/.copilot/skills locations."
+
+verification:
+  project:
+    expected_path: ".github/skills/"
+  global:
+    expected_path: "~/.copilot/skills/"

@@ -1,17 +1,43 @@
-adapter_version: 0.5.0
-target: generic
-skill_source: ../../skills
+id: generic
+name: Generic Agent Skills
+
+adapter:
+  schema_version: "1.0"
+  version: "0.1.0"
+  platform: generic
+
+detection:
+  commands: []
+
 installation:
-  mode: native-skill-directory
-  project: .agents/skills
-  global: ~/.agents/skills
-  source: The-Builder repository
-claims:
-  verified: true
-  verification_scope: documented-skill-discovery
-  source: https://agentskills.io/
-capability_notes:
-  filesystem: host-dependent
-  terminal: host-dependent
-  browser: host-dependent
-  mcp: host-dependent
+  project:
+    supported: true
+    target: ".agents/skills/"
+  global:
+    supported: true
+    target: "~/.agents/skills/"
+  strategy: portable-agent-skills
+
+skills:
+  source: "skills/"
+  discovery: native
+
+capabilities:
+  discovery: true
+  filesystem: unknown
+  terminal: unknown
+  browser: unknown
+  mcp: unknown
+
+compatibility:
+  status: standard
+  evidence:
+    - "https://agentskills.io/"
+  notes:
+    - "Targets the open Agent Skills convention without asserting provider-specific runtime behavior."
+
+verification:
+  project:
+    expected_path: ".agents/skills/"
+  global:
+    expected_path: "~/.agents/skills/"
