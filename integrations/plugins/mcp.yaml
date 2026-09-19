@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 kind: plugin
 id: mcp
 description: Discover and invoke authorized MCP tools/resources exposed to the agent.

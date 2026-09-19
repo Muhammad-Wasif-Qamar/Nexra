@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 kind: connector
 id: browser-session
 description: Stateful browser/page session resource.

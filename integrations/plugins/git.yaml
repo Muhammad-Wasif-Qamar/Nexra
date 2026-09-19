@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 kind: plugin
 id: git
 description: Inspect repository state, diffs, branches, and history; perform authorized version-control actions.

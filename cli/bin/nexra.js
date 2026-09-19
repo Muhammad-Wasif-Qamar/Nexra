@@ -812,7 +812,7 @@ function writeManifest({
 
   const manifest = {
     schema: MANIFEST_VERSION,
-    version: "0.1.0",
+    version: "0.1.1",
     scope,
     installed_at: new Date().toISOString(),
     skills: selectedSkills,
@@ -1335,7 +1335,7 @@ async function commandInstall(adapters) {
 
   if (cliOptions.generic) {
     const generic = adapters.find(
-      item => item.adapter.id === "generic"
+      item => item.id === "generic"
     );
 
     if (!generic) {
@@ -1346,7 +1346,7 @@ async function commandInstall(adapters) {
     selectedAdapters = [generic];
   } else if (requestedAgent) {
     const requested = adapters.find(
-      item => item.adapter.id === requestedAgent
+      item => item.id === requestedAgent
     );
 
     if (!requested) {
@@ -1369,7 +1369,9 @@ async function commandInstall(adapters) {
   // { adapter, detected, evidence }. Normalize those records
   // to the actual adapter objects expected by the installer.
   selectedAdapters = selectedAdapters.map(item =>
-    item && item.adapter
+    item &&
+    item.adapter &&
+    item.adapter.id
       ? item.adapter
       : item
   );
@@ -1579,7 +1581,7 @@ async function main() {
       case "version":
       case "--version":
       case "-v":
-        console.log("0.1.0");
+        console.log("0.1.1");
         break;
 
       default:

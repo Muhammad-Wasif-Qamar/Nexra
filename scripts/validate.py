@@ -1895,10 +1895,10 @@ def validate_integration_file(
             f"(declared '{data.get('id')}')"
         )
 
-    if data.get("version") != "0.1.0":
+    if data.get("version") != "0.1.1":
         error(
             f"{kind} {expected_id}: "
-            "version must be 0.1.0 "
+            "version must be 0.1.1 "
             f"(found '{data.get('version')}')"
         )
 
@@ -1936,10 +1936,10 @@ def validate_integrations():
             "must be a mapping"
         )
 
-    elif registry.get("version") != "0.1.0":
+    elif registry.get("version") != "0.1.1":
         error(
             "integrations registry must "
-            "declare version 0.1.0"
+            "declare version 0.1.1"
         )
 
     plugins_root = (
@@ -2096,17 +2096,17 @@ def validate_package():
         )
         return
 
-    if package.get("name") != "nexra":
+    if package.get("name") != "nexra-skills":
         error(
             "package.json: "
-            f"expected name 'nexra', "
+            f"expected name 'nexra-skills', "
             f"found '{package.get('name')}'"
         )
 
-    if package.get("version") != "0.1.0":
+    if package.get("version") != "0.1.1":
         error(
             "package.json: "
-            f"expected version '0.1.0', "
+            f"expected version '0.1.1', "
             f"found '{package.get('version')}'"
         )
 

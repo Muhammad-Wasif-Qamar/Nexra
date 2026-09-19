@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 kind: plugin
 id: browser
 description: Inspect and interact with rendered web pages when browser capability is available.
