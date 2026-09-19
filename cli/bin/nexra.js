@@ -1365,6 +1365,15 @@ async function commandInstall(adapters) {
       );
   }
 
+  // chooseAdapters() returns detection records shaped as
+  // { adapter, detected, evidence }. Normalize those records
+  // to the actual adapter objects expected by the installer.
+  selectedAdapters = selectedAdapters.map(item =>
+    item && item.adapter
+      ? item.adapter
+      : item
+  );
+
   let scope;
 
   if (cliOptions.global && cliOptions.project) {

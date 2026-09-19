@@ -1,5 +1,5 @@
 {
-  "name": "nexra",
+  "name": "nexra-skills",
   "version": "0.1.0",
   "description": "A capability-aware, user-driven skill system for AI coding agents.",
   "type": "module",
